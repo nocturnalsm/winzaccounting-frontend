@@ -1,23 +1,36 @@
 <template>
-    <v-data-table        
+    <v-data-table-server        
         :headers="fields"
         :items="data"
-        :options.sync="options"
-        :server-items-length="syncDataServer"
+        :items-length="totalData"
         :loading="loading"
         class="elevation-1"
         :footer-props="footerProps"
-        :items-per-page="-1"
+        :items-per-page="10"
         v-bind="$attrs"       
         :hide-default-footer="noFooter"
+        :show-select="selectable"
+        @update:options="handleData"
+        item-value="id"
+        v-model="selected"
+        :search="search"
     >
         <template v-slot:top>
             <v-toolbar
                 flat
                 v-if="!noHeader"
             >
-                <v-toolbar-title>{{ title }}</v-toolbar-title>                      
-                <v-spacer></v-spacer>
+                <div class="d-flex align-center flex-grow-1">
+                    <h1 class="text-h6 pl-4 pr-4 pr-sm-8">{{ title }}</h1>                    
+                    <v-text-field                                      
+                        prepend-inner-icon="mdi-magnify" 
+                        placeholder="Search" 
+                        variant="underlined"
+                        :loading="loading"
+                        single-line
+                    />                
+                </div>
+                <v-spacer class="d-none d-sm-inline"></v-spacer>
                 <v-dialog v-model="dialogDelete" max-width="500px">
                     <v-card>
                         <v-card-title class="text-h6">Apakah Anda yakin akan menghapus data?</v-card-title>
@@ -29,63 +42,81 @@
                         </v-card-actions>
                     </v-card>
                 </v-dialog>                
-                <slot name="actions" />                
+                <div class="actions d-flex mx-sm-2">
+                    <template v-for="(action, button) in toolbarButtons">
+                        <v-btn                 
+                            density="compact"                                                           
+                            v-if="action.show"                         
+                            :disabled="!action.enabled"                         
+                            :key="button"
+                            :color="action.color" 
+                            :title="action.hover"
+                            @click="action.click"
+                            :class="`order-${action.order}`"
+                        > 
+                            <v-icon>{{ action.icon }}</v-icon>
+                            <span class="ml-1 d-none d-md-inline">{{ action.title }}</span>
+                        </v-btn>
+                    </template>
+                </div>
             </v-toolbar>
             <v-card flat class="px-4 pb-2">
                 <slot name="filters" />
             </v-card>
         </template>
-        <template v-slot:item.actions="{ item }">
-            <v-icon
-                v-if="actionField && actionField.edit"
-                small
-                class="mr-2"
-                @click="editItem(item)"
-            >
-                mdi-pencil
-            </v-icon>
-            <v-icon
-                v-if="actionField && actionField.delete"
-                small
-                @click="deleteItem(item)"
-            >
-                mdi-delete
-            </v-icon>
+        <template v-slot:item.actions="{ item }">            
+            <template v-if="showActionColumn">
+                <div class="d-flex">
+                    <template v-for="(action, index) in computedActionButtons">
+                        <v-icon                        
+                            small                            
+                            :class="`mr-1 order-${action.order}`"
+                            v-if="handleAction(action.show, item.raw)"                                                                            
+                            @click="event => action.click(item.raw)"
+                            :title="action.title"
+                            :color="action.color"
+                            :disabled="!handleAction(action.enabled, item.raw)"
+                        >
+                            {{ action.icon }}
+                        </v-icon>
+                    </template>
+                    <slot name="actionButtons" :item="item.raw"></slot>
+                </div>
+            </template>            
+        </template>        
+        <template v-for="(_, name) in $slots" #[name]="{ item }">
+            <slot :name="name" :item="item.raw" />
         </template>
-        <template v-for="(_, name) in $scopedSlots" #[name]="{ item }">
-            <slot :name="name" :item="item" />
-        </template>
-    </v-data-table>
+    </v-data-table-server>
 </template>
 
-<script>
-  export default {      
-    props: {
+<script setup>
+    import { ref, computed, watch, onMounted } from 'vue'
+    const props = defineProps({
         headers: {
-            type: [Array, Boolean]
+            type: [Array, Boolean],
+            default: []
         },
         data: {
             type: Array,
             required: true
+        },
+        selectable: {
+            type: Boolean,
+            default: true
         },
         totalData: {
             type: Number,
             required: false
         },
         title: String,
-        actionField: {
-            type: [Object, Boolean],
-            default() {
-                return { edit: true, delete: true }
-            }
+        showActionColumn: {
+            type: Boolean,
+            default: true
         },
         dataFilter: {
             type: Object,
             default: null
-        },
-        syncData: {
-            type: Boolean,
-            default: true
         },
         noHeader: {
             type: Boolean,
@@ -94,87 +125,162 @@
         noFooter: {
             type: Boolean,
             default: false
+        },
+        confirmDelete: {
+            type: Boolean,
+            default: true
+        },
+        actionButtons: {
+            type: Object,
+            required: false
+        },
+        search: {
+            type: String,
+            default: ''
         }
-    },
-    data() {
-        return {
-            editedItem: {},
-            editedIndex: -1,
-            dialogDelete: false,
-            loading: false,
-            options: {}            
+    })
+    const emit = defineEmits(['editClick', 'deleteClick', 'getData'])
+    const editedItem = ref({})
+    const editedIndex = ref(-1)
+    const dialogDelete = ref(false)
+    const loading = ref(false)
+    const selected = ref([])
+    const deleteItem = (item) => {            
+        if (props.confirmDelete){
+            editedIndex.value = props.data.indexOf(item)
+            editedItem.value = Object.assign({}, item)
+            dialogDelete.value = true
         }
-    },
-    methods: {
-        deleteItem (item) {            
-            this.editedIndex = this.$props.data.indexOf(item)
-            this.editedItem = Object.assign({}, item)
-            this.dialogDelete = true
-        },
-        deleteItemConfirm () {
-            this.$emit('onDeleteClick', this.editedItem)
-            this.closeDelete()
-        },
-        closeDelete () {
-            this.dialogDelete = false
-            this.$nextTick(() => {
-                this.editedItem = Object.assign({}, {})
-                this.editedIndex = -1
-            })
-        },
-        editItem (item) {
-            this.$emit('onEditClick', item)
+        else {
+            emit('deleteClick', editedItem.value)
         }
-    },  
-    computed: {
-        fields() {            
-            let headers = this.$props.headers                        
-            if (this.$props.actionField !== false){
-                headers = [...headers, { text: 'Actions', value: 'actions', sortable: false }]
-            }
-            return headers
-        },                
-        syncDataServer() {
-            return this.syncData ? this.totalData: -1
-        },
-        footerProps() {            
-            let props = {
-                showCurrentPage: true,
-                showFirstLastPage: true
-            }
-            let rowsPerPage = this.$attrs['rows-per-page'] ?? 10
-            if (rowsPerPage >= 0) {                
-                props = { ...props, itemsPerPageOptions: [10, 20, 50] }
-            }
-            else {
-                props = { ...props, itemsPerPageOptions: [10, 20, 50, -1] }
-            }
-            return props
-        }   
-    },
-    watch: {
-        options: {
-            handler () {
-                let params = {
-                    page: this.options.page,
-                    limit: this.options.itemsPerPage,
-                    sort: this.options.sortBy[0],
-                    order: !this.options.sortBy || !this.options.sortDesc[0] ? 'asc' : 'desc',
-                    filter: this.dataFilter ?? null
-                }                
-                this.$emit('onGetData', params)
+    }
+
+    const toolbarButtons = {
+        addButton: {
+            name: 'add',
+            title: 'Add New',
+            icon: 'mdi-plus',
+            hover: 'Add New',
+            enabled: true,
+            show: true,
+            click: () => {
+                emit('addClick')
             },
-            deep: true,
+            color: 'primary',
+            order: 0            
         },
-        dataFilter: {
-            handler() {
-                this.options = {...this.options, page: 1}
-            },            
-            deep: true
-        },
-        dialogDelete (val) {
-            val || this.closeDelete()
+        deleteSelectedButton: {
+            name: 'deleteSelected',
+            title: 'Delete',
+            icon: 'mdi-trash-can',
+            hover: 'Delete selected',
+            enabled: true,
+            show: false,
+            click: () => {
+                emit('deleteSelectedClick')
+            },
+            color: 'error',
+            order: 1            
         }
-    },
-  }
+    }
+
+    const actionButtons = {
+        editButton: {            
+            title: 'Edit',
+            icon: 'mdi-pencil',
+            enabled: true,
+            show: true,
+            click: item => {
+                editItem(item)
+            },
+            color: 'primary',
+            order: 0            
+        },
+        deleteButton: {            
+            title: 'Delete',
+            icon: 'mdi-trash-can',            
+            enabled: true,
+            show: true,
+            click: item => {
+                deleteItem(item)
+            },
+            color: 'error',
+            order: 1            
+        }
+    }
+    
+    const deleteItemConfirm = () => {
+        emit('deleteClick', editedItem.value)
+        closeDelete()
+    }
+
+    const closeDelete = () => {
+        dialogDelete.value = false
+        nextTick(() => {
+            editedItem.value = Object.assign({}, {})
+            editedIndex.value = -1
+        })
+    }
+        
+    const editItem = (item) => {
+        emit('editClick', item)
+    }
+    
+    const fields = computed(() => {            
+        let headers = props.headers                        
+        if (props.showActionColumn !== false){
+            headers = [...headers, { title: 'Actions', key: 'actions', sortable: false }]
+        }        
+        return headers
+    })
+        
+    const footerProps = computed(() => {            
+        let footer = {
+            showCurrentPage: true,
+            showFirstLastPage: true
+        }
+        return footer
+    })   
+    
+    const handleData = options => { 
+        const { itemsPerPage, page, sortBy } = options       
+        let params = {
+            page: page,
+            limit: itemsPerPage ?? 10,
+            sort: sortBy[0] ? sortBy[0]['key'] : null,
+            order: sortBy[0] ? sortBy[0]['order'] : 'asc'
+        }                
+        emit('getData', params)
+    }
+    
+    watch (dialogDelete, val => {
+        val || closeDelete()        
+    })
+
+    watch(selected, value => {
+        toolbarButtons.deleteSelectedButton.show = value.length
+    })
+    
+    const handleAction = (prop, item) => {
+        if (typeof prop == 'function'){
+            return prop(item)
+        }
+        else {
+            return prop
+        }
+    }
+
+    const computedActionButtons = computed(() => {
+        let buttons = actionButtons        
+        if (props.actionButtons){
+            const { editButton, deleteButton } = props.actionButtons
+            buttons = { 
+                editButton: { ...actionButtons.editButton, ...editButton },
+                deleteButton: { ...actionButtons.deleteButton, ...deleteButton },
+            }
+        }
+        return buttons
+    })
+
 </script>

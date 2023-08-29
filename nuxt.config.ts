@@ -1,4 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
 export default defineNuxtConfig({  
   css: [
     'vuetify/lib/styles/main.sass',
@@ -7,13 +8,20 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
+  components: [
+    {
+        path: '~/components',
+        pathPrefix: false,
+    },
+  ],
   vite: {
     server: {
       hmr: {
-        protocol: 'ws'
+        protocol: 'ws',
+        host: 'localhost'
       }
     }
-  },
+  },  
   runtimeConfig: {
     public: {    
       baseUrl: process.env.API_URL,
@@ -25,10 +33,7 @@ export default defineNuxtConfig({
     'nuxt-sanctum-auth',
     '@pinia/nuxt',            
   ],
-  routeRules: {
-    '/auth/**': { ssr: false },
-    '/admin/**': { ssr: false }
-  },
+  ssr: false,
   nuxtSanctumAuth: {
       token: false, // set true to use jwt-token auth instead of cookie. default is false
       baseUrl: process.env.API_URL,

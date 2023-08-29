@@ -1,5 +1,6 @@
 <template>
   <div>
+    <Toast />
     <v-img
       class="mx-auto my-6"
       max-width="228"
@@ -14,14 +15,16 @@
         rounded="lg"
     >
         <form @submit.prevent="login">
-            <div class="text-subtitle-1 text-medium-emphasis">Account</div>
+            <div class="text-subtitle-1 text-medium-emphasis">Username</div>
 
             <v-text-field
                 density="compact"
-                placeholder="Email address"
-                prepend-inner-icon="mdi-email-outline"
+                v-model="credentials.username"
+                placeholder="Username"
+                prepend-inner-icon="mdi-account-outline"
                 variant="outlined"
-            ></v-text-field>
+                :error-messages="handleError('username')"
+            ></v-text-field>            
 
             <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
                 Password        
@@ -34,12 +37,15 @@
                 placeholder="Enter your password"
                 prepend-inner-icon="mdi-lock-outline"
                 variant="outlined"
+                v-model="credentials.password"
                 @click:append-inner="password_visible = !password_visible"
+                :error-messages="handleError('password')"
             ></v-text-field>     
 
             <v-btn
+                :loading="loading"
                 block
-                class="mb-8"
+                class="mt-4 mb-8"
                 color="primary"
                 size="large"
                 variant="tonal"
@@ -77,13 +83,15 @@
 
 <script setup>
     import { ref } from 'vue'
-  
+    definePageMeta({
+        middleware: 'guest'
+    })
     const password_visible = ref(false)
     const loading = ref(false)
     const errors = ref(null)
     const { $sanctumAuth  } = useNuxtApp()
     const credentials = ref({
-        email: '',
+        username: '',
         password: ''
     })
 
@@ -93,19 +101,34 @@
         try {
             await $sanctumAuth.login(
                 {
-                    email: credentials.value.email,
+                    username: credentials.value.username,
                     password: credentials.value.password
                 }
             )
         } 
         catch (e) {
-            // your error handling
-            console.log(e)
-            errors.value = e.errors                    
+            // your error handling            
+            if (e.errors){
+                errors.value = e.errors
+            }
+            else {                
+                $toast({
+                    state: 'error',
+                    message: e.message
+                })
+            }
         }
         finally {
             loading.value = false
         }
     }
 
+    const handleError = input => {
+        let err = errors.value
+        if (err){
+            if (err[input]){
+                return err[input]
+            }            
+        }        
+    }
 </script>

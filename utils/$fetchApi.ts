@@ -1,4 +1,5 @@
 import { $fetch, FetchError, FetchOptions } from "ofetch";
+import { activeCompany } from "~/store/activeCompany";
 
 const CSRF_COOKIE = "XSRF-TOKEN";
 const CSRF_HEADER = "X-XSRF-TOKEN";
@@ -59,7 +60,10 @@ export async function $fetchApi<T, R extends ResponseType = "json">(
 
   try {    
     let { params } = options    
-    
+    if (activeCompany.company){
+      params.company_id = activeCompany.company.id
+      console.log(params)
+    }    
     options = { ...options, params: params }
     return await $fetch<T, R>(path, {
       baseURL: apiUrl,
@@ -92,12 +96,12 @@ export async function $fetchApi<T, R extends ResponseType = "json">(
 }
 
 async function initCsrf() {
-  const { baseUrl } = useRuntimeConfig().public;
-
-  await $fetch("/sanctum/csrf-cookie", {
+  const { baseUrl } = useRuntimeConfig().public;  
+  const response = await $fetch("/sanctum/csrf-cookie", {
     baseURL: baseUrl,
     credentials: "include",
   });
+  
 }
 
 // https://github.com/axios/axios/blob/bdf493cf8b84eb3e3440e72d5725ba0f138e0451/lib/helpers/cookies.js

@@ -5,16 +5,14 @@
                 <DataTable 
                     :totalData="totalRecords"
                     :loading="loading"         
-                    :data="roles"
+                    :data="companies"
                     :headers="headers"
-                    title="Roles"
+                    title="Companies"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
-                >                    
-                    <template #item.permissions="{ item }">
-                        <v-chip class="mr-2" color="primary" v-for="permission in item.permissions">
-                            {{ permission.name }}
-                        </v-chip>
+                >
+                    <template #item.type="{ item }">
+                        {{ item.type.type }}
                     </template>
                 </DataTable>
             </v-card>
@@ -31,7 +29,7 @@
         layout: 'admin'
     })
     
-    const roles = ref([])
+    const companies = ref([])
     const loading = ref(false)
     const totalRecords = ref(0)
     const fetchParams = ref(null)
@@ -42,24 +40,18 @@
             key: 'name'
         },
         {
-            title: 'Permissions',
-            key: "permissions",
-            sortable: false
-        },
-        {
-            title: 'Users Count',
-            key: "users_count",
-            sortable: false
+            title: 'Company Type',
+            key: 'type'
         }
     ])
 
     const fetchData = async params => {
 
         loading.value = true        
-        const response = await $fetchApi('/admin/roles', {
+        const response = await $fetchApi('/admin/companies', {
             params: params
         })          
-        roles.value = response.data        
+        companies.value = response.data        
         totalRecords.value = response.total
         loading.value = false       
     }
