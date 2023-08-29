@@ -18,6 +18,11 @@
                             {{ role.name }}
                         </v-chip>
                     </template>
+                    <template #item.status="{ item }">
+                        <v-chip :color="item.status.color">
+                            {{ item.status.label }}
+                        </v-chip>
+                    </template>
                 </DataTable>
             </v-card>
         </v-col>
