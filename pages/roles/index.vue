@@ -10,6 +10,7 @@
                     title="Roles"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
+                    @search="handleSearch"
                 >                    
                     <template #item.permissions="{ item }">
                         <v-chip class="mr-2" color="primary" v-for="permission in item.permissions">
@@ -49,7 +50,8 @@
         {
             title: 'Users Count',
             key: "users_count",
-            sortable: false
+            sortable: false,
+            searchable: false
         }
     ])
 
@@ -61,7 +63,20 @@
         })          
         roles.value = response.data        
         totalRecords.value = response.total
+        fetchParams.value = params
         loading.value = false       
     }
-        
+
+    const handleSearch = search => {
+        let { filter, rest } = fetchParams.value
+        let params = { 
+            ...rest,
+            filter: {
+                ...filter,
+                name: search,
+                permissions: search
+            }
+        }
+        fetchData(params)
+    }
 </script>

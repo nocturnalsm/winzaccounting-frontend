@@ -12,6 +12,7 @@
                     @get-data="fetchData"
                     @edit-click="handleEdit"
                     :actionButtons="actionButtons"
+                    @search="handleSearch"
                 >
                     <template #item.roles="{ item }">
                         <v-chip color="primary" v-for="role in item.roles">
@@ -75,6 +76,7 @@
         })          
         users.value = response.data        
         totalRecords.value = response.total
+        fetchParams.value = params
         loading.value = false       
     }
 
@@ -97,5 +99,21 @@
             },
             order: 2
         }
+    }
+
+    const handleSearch = search => {
+        let { filter, rest } = fetchParams.value
+        let params = { 
+            ...rest,
+            filter: {
+                ...filter,
+                name: search,
+                username: search,
+                email: search,
+                roles: search,
+                status: search
+            }
+        }
+        fetchData(params)
     }
 </script>

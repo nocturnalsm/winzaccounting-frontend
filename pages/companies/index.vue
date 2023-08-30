@@ -10,6 +10,7 @@
                     title="Companies"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
+                    @search="handleSearch"
                 >
                     <template #item.type="{ item }">
                         {{ item.type.type }}
@@ -53,7 +54,21 @@
         })          
         companies.value = response.data        
         totalRecords.value = response.total
+        fetchParams.value = params
         loading.value = false       
+    }
+
+    const handleSearch = search => {
+        let { filter, rest } = fetchParams.value
+        let params = { 
+            ...rest,
+            filter: {
+                ...filter,
+                name: search,
+                company_type: search
+            }
+        }
+        fetchData(params)
     }
         
 </script>

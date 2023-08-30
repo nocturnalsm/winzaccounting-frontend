@@ -12,47 +12,59 @@
         :show-select="selectable"
         @update:options="handleData"
         item-value="id"
-        v-model="selected"
-        :search="search"
+        v-model="selected"        
     >
         <template v-slot:top>
+            <v-dialog v-model="dialogDelete" max-width="500px">
+                <v-card>
+                    <v-card-title class="text-h6">{{ deleteConfirmText }}</v-card-title>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
+                        <v-btn color="red darken-1" text @click="deleteItemConfirm">OK</v-btn>
+                        <v-spacer></v-spacer>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
             <v-toolbar
                 flat
                 v-if="!noHeader"
             >
                 <div class="d-flex align-center flex-grow-1">
-                    <h1 class="text-h6 pl-4 pr-4 pr-sm-8">{{ title }}</h1>                    
-                    <v-text-field                                      
-                        prepend-inner-icon="mdi-magnify" 
-                        placeholder="Search" 
-                        variant="underlined"
-                        :loading="loading"
-                        single-line
-                    />                
+                    <h1 class="text-h6 pl-4 pr-4 pr-sm-8">{{ title }}</h1>    
+                    <form @submit.prevent="handleSearch" class="search d-inline-flex align-center flex-grow-1">
+                        <v-text-field                                                              
+                            :placeholder="computedSearchPlaceholder" 
+                            variant="underlined"
+                            :loading="loading"
+                            single-line
+                            v-model="search"
+                            class="mr-2"
+                            clearable
+                        />       
+                        <v-btn 
+                            type="submit" 
+                            class="px-4 d-none d-md-inline" 
+                            color="primary" 
+                            variant="elevated"                        
+                        >
+                            <v-icon>mdi-magnify</v-icon>
+                            <span class="d-none d-md-inline ml-2">Search</span>
+                        </v-btn>
+                    </form>
                 </div>
-                <v-spacer class="d-none d-sm-inline"></v-spacer>
-                <v-dialog v-model="dialogDelete" max-width="500px">
-                    <v-card>
-                        <v-card-title class="text-h6">Apakah Anda yakin akan menghapus data?</v-card-title>
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
-                            <v-btn color="red darken-1" text @click="deleteItemConfirm">OK</v-btn>
-                            <v-spacer></v-spacer>
-                        </v-card-actions>
-                    </v-card>
-                </v-dialog>                
+                <v-spacer class="d-none d-sm-inline"></v-spacer>                                
                 <div class="actions d-flex mx-sm-2">
                     <template v-for="(action, button) in toolbarButtons">
                         <v-btn                 
-                            density="compact"                                                           
+                            :density="smAndDown ? 'compact' : 'comfortable'"                                                           
                             v-if="action.show"                         
-                            :disabled="!action.enabled"                         
-                            :key="button"
+                            :disabled="!action.enabled"    
                             :color="action.color" 
                             :title="action.hover"
-                            @click="action.click"
-                            :class="`order-${action.order}`"
+                            @click="action.click"                                                                                                             
+                            :class="`px-0 px-md-2 order-${action.order}`"
+                            :icon="smAndDown ? action.icon : null"
                         > 
                             <v-icon>{{ action.icon }}</v-icon>
                             <span class="ml-1 d-none d-md-inline">{{ action.title }}</span>
@@ -68,17 +80,18 @@
             <template v-if="showActionColumn">
                 <div class="d-flex">
                     <template v-for="(action, index) in computedActionButtons">
-                        <v-icon                        
-                            small                            
-                            :class="`mr-1 order-${action.order}`"
+                        <v-btn                                            
+                            :class="`order-${action.order}`"
                             v-if="handleAction(action.show, item.raw)"                                                                            
                             @click="event => action.click(item.raw)"
                             :title="action.title"
                             :color="action.color"
                             :disabled="!handleAction(action.enabled, item.raw)"
+                            :icon="action.icon"
+                            variant="text"
+                            density="comfortable"
                         >
-                            {{ action.icon }}
-                        </v-icon>
+                        </v-btn>
                     </template>
                     <slot name="actionButtons" :item="item.raw"></slot>
                 </div>
@@ -91,7 +104,10 @@
 </template>
 
 <script setup>
-    import { ref, computed, watch, onMounted } from 'vue'
+    import { ref, computed, watch } from 'vue'
+    import { useDisplay } from 'vuetify'
+    
+    const { smAndDown } = useDisplay()
     const props = defineProps({
         headers: {
             type: [Array, Boolean],
@@ -134,12 +150,18 @@
             type: Object,
             required: false
         },
-        search: {
+        showSearch: {
+            type: Boolean,
+            default: true
+        },
+        deleteConfirmText: {
             type: String,
-            default: ''
+            default: 'Are you sure want to delete this data ?'
         }
     })
-    const emit = defineEmits(['editClick', 'deleteClick', 'getData'])
+    const emit = defineEmits(['editClick', 'deleteClick', 'getData', 'search'])
+    const fetchOptions = ref(null)
+    const search = ref('')
     const editedItem = ref({})
     const editedIndex = ref(-1)
     const dialogDelete = ref(false)
@@ -230,7 +252,7 @@
     const fields = computed(() => {            
         let headers = props.headers                        
         if (props.showActionColumn !== false){
-            headers = [...headers, { title: 'Actions', key: 'actions', sortable: false }]
+            headers = [...headers, { title: 'Actions', key: 'actions', sortable: false, searchable: false }]
         }        
         return headers
     })
@@ -250,7 +272,8 @@
             limit: itemsPerPage ?? 10,
             sort: sortBy[0] ? sortBy[0]['key'] : null,
             order: sortBy[0] ? sortBy[0]['order'] : 'asc'
-        }                
+        }     
+        fetchOptions.value = options
         emit('getData', params)
     }
     
@@ -283,4 +306,27 @@
         return buttons
     })
 
+    const computedSearchPlaceholder = computed(() => {
+        return "Search By " + 
+                fields.value.filter(item => (item.searchable ?? true))
+                      .map(item => item.title)
+                      .join(", ")
+    })
+
+    const handleSearch = () => {
+        emit('search', search.value)
+    }
+
+    watch(search, (value, oldValue) => {
+        if (!value && oldValue){
+            handleData(fetchOptions.value)
+        }
+    })
+
 </script>
+
+<style scoped>
+    form.search {
+        max-width: 500px;
+    }
+</style>

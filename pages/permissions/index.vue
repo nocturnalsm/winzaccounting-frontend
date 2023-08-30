@@ -10,6 +10,7 @@
                     title="Permissions"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
+                    @search="handleSearch"
                 >                    
                 </DataTable>
             </v-card>
@@ -46,7 +47,19 @@
         })          
         permissions.value = response.data        
         totalRecords.value = response.total
+        fetchParams.value = params
         loading.value = false       
     }
         
+    const handleSearch = search => {
+        let { filter, rest } = fetchParams.value
+        let params = { 
+            ...rest,
+            filter: {
+                ...filter,
+                name: search
+            }
+        }
+        fetchData(params)
+    }
 </script>
