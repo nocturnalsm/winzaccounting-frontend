@@ -66,19 +66,19 @@ const items = ref([
         children: [
             {
                 title: 'Companies',
-                route: { name: 'companies' }
-            },
-            {
-                title: 'Users',
-                route: { name: 'users' }
+                route: { name: 'settings-companies' }
             },
             {
                 title: 'Permissions',
-                route: { name: 'permissions' }
+                route: { name: 'settings-permissions' }
             },                
             {
                 title: 'Roles',
-                route: { name: 'roles' }
+                route: { name: 'settings-roles' }
+            },
+            {
+                title: 'Users',
+                route: { name: 'settings-users' }
             }
         ]
     }                    

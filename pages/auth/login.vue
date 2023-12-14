@@ -18,6 +18,7 @@
             <div class="text-subtitle-1 text-medium-emphasis">Username</div>
 
             <v-text-field
+                autoFocus
                 density="compact"
                 v-model="credentials.username"
                 placeholder="Username"

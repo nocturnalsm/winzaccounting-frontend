@@ -159,7 +159,7 @@
             default: 'Are you sure want to delete this data ?'
         }
     })
-    const emit = defineEmits(['editClick', 'deleteClick', 'getData', 'search'])
+    const emit = defineEmits(['addClick', 'editClick', 'deleteClick', 'getData', 'search'])
     const fetchOptions = ref(null)
     const search = ref('')
     const editedItem = ref({})

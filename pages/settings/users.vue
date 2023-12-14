@@ -1,17 +1,19 @@
 <template>      
     <v-row>
         <v-col cols="12">
+            <UserForm :loading="loading" @submit="handleSubmit" v-if="edited" :data="edited" @close="edited = null" />
             <v-card class="rounded-lg text-body-1">
                 <DataTable 
                     :totalData="totalRecords"
                     :loading="loading"         
                     :data="users"
                     :headers="headers"
+                    :actionButtons="actionButtons"
                     title="Users"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
-                    @edit-click="handleEdit"
-                    :actionButtons="actionButtons"
+                    @add-click="handleAdd"
+                    @edit-click="handleEdit"                    
                     @search="handleSearch"
                 >
                     <template #item.roles="{ item }">
@@ -43,6 +45,7 @@
     const loading = ref(false)
     const totalRecords = ref(0)
     const fetchParams = ref(null)
+    const edited = ref(null)
     
     const headers = ref([
         {
@@ -72,7 +75,10 @@
 
         loading.value = true        
         const response = await $fetchApi('/admin/users', {
-            params: params
+            params: {
+                ...fetchParams,
+                ...params
+            }
         })          
         users.value = response.data        
         totalRecords.value = response.total
@@ -81,7 +87,8 @@
     }
 
     const handleEdit = data => {
-        console.log(data)
+        const { id, name, username, email, roles, status } = data
+        edited.value = { id, name, username, email, roles, status, password: '' }
     }   
 
     const actionButtons = {
@@ -115,5 +122,43 @@
             }
         }
         fetchData(params)
+    }
+
+    const handleAdd = () => {
+        edited.value = {
+            name: '',
+            email: '',
+            username: '',
+            roles: [],
+            status: null,
+            password: ''
+        }
+    }
+
+    const handleSubmit = async data => {
+        console.log(data)
+        let param = data.id ? `/${data.id}` : ''
+        loading.value = true        
+        try {
+            const response = await $fetchApi(`/admin/users${param}`, {
+                method: data.id ? 'PUT' : 'POST',
+                body: data
+            })
+            $toast({
+                message: 'Record saved',
+                state: 'success'
+            })
+            fetchParams()
+        }
+        catch (err){
+            console.log(err)
+            $toast({
+                message: 'Error occured on saving. Please try again',
+                state: 'error'
+            })
+        }
+        finally {
+            loading.value = false
+        }
     }
 </script>

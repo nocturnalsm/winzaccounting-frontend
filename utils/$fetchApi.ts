@@ -60,11 +60,12 @@ export async function $fetchApi<T, R extends ResponseType = "json">(
 
   try {    
     let { params } = options    
-    if (activeCompany.company){
-      params.company_id = activeCompany.company.id
-      console.log(params)
-    }    
-    options = { ...options, params: params }
+    if (params){
+      if (activeCompany.company){
+        params.company_id = activeCompany.company.id
+      }    
+      options = { ...options, params: params }
+    }
     return await $fetch<T, R>(path, {
       baseURL: apiUrl,
       ...options,
