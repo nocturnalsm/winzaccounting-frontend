@@ -6,6 +6,7 @@
       :width="props.width"
     >     
     <form @submit.prevent="handleSubmit"> 
+        <fieldset :disabled="props.loading">
       <v-card :loading="props.loading">
         <v-toolbar
           dark
@@ -40,6 +41,7 @@
           </v-btn>
         </v-card-actions>
       </v-card>
+      </fieldset>
       </form>
     </v-dialog>
   </v-row>
@@ -68,10 +70,9 @@
 
     const emits = defineEmits(['submit', 'close'])
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         try {
             emits('submit')
-            emits('close')
         }
         catch (err){
             console.log(err)

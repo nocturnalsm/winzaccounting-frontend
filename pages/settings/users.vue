@@ -1,7 +1,13 @@
 <template>      
     <v-row>
         <v-col cols="12">
-            <UserForm :loading="loading" @submit="handleSubmit" v-if="edited" :data="edited" @close="edited = null" />
+            <UserForm 
+                v-if="edited"
+                @success="handleSuccess" 
+                @error="handleError" 
+                @close="edited = null" 
+                :data="edited" 
+            />
             <v-card class="rounded-lg text-body-1">
                 <DataTable 
                     :totalData="totalRecords"
@@ -46,6 +52,7 @@
     const totalRecords = ref(0)
     const fetchParams = ref(null)
     const edited = ref(null)
+    const errors = ref(null)
     
     const headers = ref([
         {
@@ -73,10 +80,10 @@
 
     const fetchData = async params => {
 
-        loading.value = true        
+        loading.value = true 
         const response = await $fetchApi('/admin/users', {
             params: {
-                ...fetchParams,
+                ...fetchParams.value,
                 ...params
             }
         })          
@@ -87,8 +94,8 @@
     }
 
     const handleEdit = data => {
-        const { id, name, username, email, roles, status } = data
-        edited.value = { id, name, username, email, roles, status, password: '' }
+        const { id, name, username, email, roles, status, companies } = data
+        edited.value = { id, name, username, email, roles, companies, status, password: '' }
     }   
 
     const actionButtons = {
@@ -130,35 +137,26 @@
             email: '',
             username: '',
             roles: [],
+            companies: [],
             status: null,
             password: ''
         }
     }
 
-    const handleSubmit = async data => {
-        console.log(data)
-        let param = data.id ? `/${data.id}` : ''
-        loading.value = true        
-        try {
-            const response = await $fetchApi(`/admin/users${param}`, {
-                method: data.id ? 'PUT' : 'POST',
-                body: data
-            })
-            $toast({
-                message: 'Record saved',
-                state: 'success'
-            })
-            fetchParams()
-        }
-        catch (err){
-            console.log(err)
-            $toast({
-                message: 'Error occured on saving. Please try again',
-                state: 'error'
-            })
-        }
-        finally {
-            loading.value = false
-        }
+    const handleSuccess = data => {      
+        $toast({
+            message: 'Record saved',
+            state: 'success'
+        })
+        fetchData()
+        edited.value = null
     }
+
+    const handleError = error => {            
+        $toast({
+            message: 'Error occured on saving. Please try again',
+            state: 'error'
+        })
+    }
+
 </script>

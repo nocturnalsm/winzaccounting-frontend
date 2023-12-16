@@ -2,10 +2,10 @@
     <ModalForm 
         :title="computedTitle" 
         :visible="props.data != null"        
-        :loading="props.loading"
+        :loading="loading"
         @submit="handleSubmit"
         @close="handleClose"
-        :width="800"
+        :width="800"        
     >    
         <v-row dense no-gutters>
             <v-col cols="12" md="4">
@@ -14,10 +14,12 @@
 
             <v-col cols="12" md="8">
                 <v-text-field
-                    autoFocus
+                    autofocus
                     density="compact"
                     label="Name"
                     v-model="props.data.name"
+                    hide-details="auto"
+                    :error-messages="handleError('name')"
                 ></v-text-field>
             </v-col>
         </v-row>
@@ -31,7 +33,9 @@
                 <v-text-field
                     density="compact"
                     label="Username"
-                    v-model="props.data.username"                
+                    v-model="props.data.username"     
+                    hide-details="auto"
+                    :error-messages="handleError('username')"
                 ></v-text-field>
             </v-col>
         </v-row>
@@ -46,8 +50,31 @@
                     density="compact"
                     type="email"
                     label="Email address"
-                    v-model="props.data.email"          
+                    v-model="props.data.email" 
+                    hide-details="auto"         
+                    :error-messages="handleError('email')"
                 ></v-text-field>
+            </v-col>
+        </v-row>
+
+        <v-row dense no-gutters>
+            <v-col cols="12" md="4">
+                <v-list-subheader>Company</v-list-subheader>
+            </v-col>
+
+            <v-col cols="12" md="8">
+                <v-autocomplete
+                    density="compact"
+                    label="Company"
+                    :items="companies"
+                    v-model="props.data.companies"
+                    item-title="name"
+                    item-value="id"
+                    multiple
+                    chips
+                    return-object
+                    hide-details="auto"
+                ></v-autocomplete>
             </v-col>
         </v-row>
 
@@ -63,9 +90,11 @@
                     :items="roles"
                     v-model="props.data.roles"
                     item-title="name"
-                    item-id="name"
+                    item-value="id"
                     multiple
+                    return-object
                     chips
+                    hide-details="auto"
                 ></v-autocomplete>
             </v-col>
         </v-row>
@@ -79,18 +108,12 @@
                     density="compact"
                     label="Status"
                     :items="statuses"
-                    item-title="title"
+                    item-title="label"
                     item-value="id"
-                    v-model="props.data.status"
+                    v-model="props.data.status" 
+                    hide-details="auto"                   
+                    return-object
                 >
-                    <template v-slot:item="{ props, item }">
-                        <v-list-item
-                            v-bind="props"
-                            class="text-capitalize"
-                            :title="props.title"
-                        >
-                        </v-list-item>
-                    </template>
                 </v-autocomplete>
             </v-col>
         </v-row>
@@ -102,11 +125,13 @@
             <v-col cols="12" md="8">
                 <v-text-field            
                     density="compact"        
-                    label="Input password to change password"
+                    label="Password"
                     v-model="props.data.password"     
                     :append-inner-icon="password_visible ? 'mdi-eye-off' : 'mdi-eye'"
                     :type="password_visible ? 'text' : 'password'"    
                     @click:append-inner="password_visible = !password_visible" 
+                    :hint="computedHint"
+                    hide-details="auto"
                 ></v-text-field>
             </v-col>
         </v-row>
@@ -118,23 +143,48 @@
     import { ref, computed, onMounted } from 'vue'
 
     const roles = ref([])
+    const companies = ref([])
     const password_visible = ref(false)
     const statuses = ref([])
+    const errors = ref(null)
+    const loading = ref(false)
     const props = defineProps({
         data: {
             type: Object,
             default: null
-        },
-        loading: {
-            type: Boolean,
-            default: false
         }
     })
+    
+    const emits = defineEmits(['success', 'error', 'close'])        
 
-    const emits = defineEmits(['submit', 'close'])
-
-    const handleSubmit = () => {
-        emits('submit', props.data)
+    const handleSubmit = async () => {
+        if (props.data){
+            let param = props.data.id ? `/${props.data.id}` : ''        
+            loading.value = true        
+            errors.value = null
+            let submit = {
+                ...props.data,
+                roles: props.data.roles.map(item => {
+                    return item.name
+                }),
+                companies: props.data.companies?.map(item => item.id),
+                status_id: props.data.status?.id
+            }
+            try {
+                const response = await $fetchApi(`/admin/users${param}`, {
+                    method: submit.id ? 'PUT' : 'POST',
+                    body: submit
+                })
+                emits('success', submit)
+            }
+            catch (err){       
+                errors.value = err.response ? err.response._data.errors : {}
+                emits('error', errors)
+            }
+            finally {
+                loading.value = false
+            }
+        }
     }
 
     const handleClose = () => {
@@ -142,11 +192,13 @@
     }
 
     const computedTitle = computed(() => {
-        if (!props.data.id){
-            return "Add User"
-        }
-        else {
-            return "Edit User"
+        if (props.data){
+            if (!props.data.id){
+                return "Add User"
+            }
+            else {
+                return "Edit User"
+            }
         }
     })
 
@@ -158,8 +210,9 @@
         })
         statuses.value = responseStatus.map(item => {            
             return {
-                ...item,
-                title: item.status.substring(0,1).toUpperCase() + item.status.substring(1)
+                id: item.id,
+                status: item.status,
+                label: item.label
             }
         })
 
@@ -170,6 +223,31 @@
             }
         })
         roles.value = responseRoles
+
+        const responseCompanies = await $fetchApi('/admin/companies', {
+            params: {
+                limit: -1,
+                sort: 'name'
+            }
+        })
+        companies.value = responseCompanies
+    })
+
+    const handleError = field => {
+        if (errors.value){
+            let isError = errors.value.hasOwnProperty(field)
+            if (isError){
+                return errors.value[field]
+            }
+        }
+        return ''
+    }
+
+    const computedHint = computed(() => {
+        if (props.data.id){
+            return 'Keep this empty if you do not want to change the password'
+        }
+        return ''
     })
 
 </script>
