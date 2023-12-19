@@ -40,18 +40,6 @@
     
     companies.value = response
     
-    const company = window.localStorage.getItem('company')
-    
-    if (company){
-        console.log(company)
-        activeCompany.set(JSON.parse(company))
-    }
-    else {
-        let first = companies.value[0]
-        activeCompany.set(first)
-        window.localStorage.setItem('company', JSON.stringify(first))
-    }
-    
     const selectCompany = item => {
         const find = companies.value.find(itm => item == itm.id)
         

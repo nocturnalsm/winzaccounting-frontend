@@ -82,15 +82,16 @@
     const fetchData = async params => {
 
         loading.value = true 
+        const newParams = {
+            ...fetchParams.value,
+            ...params
+        }
         const response = await $fetchApi('/admin/users', {
-            params: {
-                ...fetchParams.value,
-                ...params
-            }
+            params: newParams
         })          
         users.value = response.data        
         totalRecords.value = response.total
-        fetchParams.value = params
+        fetchParams.value = newParams
         loading.value = false       
     }
 
@@ -116,18 +117,16 @@
         }
     }
 
-    const handleSearch = search => {
-        let { filter, rest } = fetchParams.value
+    const handleSearch = search => {        
         let params = { 
-            ...rest,
-            filter: {
-                ...filter,
+            filter: search ? {                
                 name: search,
                 username: search,
                 email: search,
                 roles: search,
                 status: search
-            }
+            } 
+            : null
         }
         fetchData(params)
     }

@@ -61,7 +61,7 @@ export async function $fetchApi<T, R extends ResponseType = "json">(
   try {    
     let { params } = options    
     if (params){
-      if (activeCompany.company){
+      if (activeCompany.company){        
         params.company_id = activeCompany.company.id
       }    
       options = { ...options, params: params }

@@ -38,6 +38,7 @@
 
 <script setup>
     import { computed } from 'vue'    
+    import { activeCompany } from '~/store/activeCompany';
 
     const appTitle = computed(() => {
         const config = useRuntimeConfig()
@@ -45,9 +46,23 @@
     })
 
     const drawer = ref(null)
+    const { user } = useAuth()
 
     useHead({
         title: appTitle,
     })
+
+    const company = window.localStorage.getItem('company')
+    
+    if (company){
+        activeCompany.set(JSON.parse(company))
+    }
+    else {
+        console.log(user)
+        let first = user.companies[0]
+        activeCompany.set(first)
+        window.localStorage.setItem('company', JSON.stringify(first))
+    }
+    
 
 </script>

@@ -41,6 +41,7 @@
                             v-model="search"
                             class="mr-2"
                             clearable
+                            @click:clear="clearSearch"
                         />       
                         <v-btn 
                             type="submit" 
@@ -317,11 +318,9 @@
         emit('search', search.value)
     }
 
-    watch(search, (value, oldValue) => {
-        if (!value && oldValue){
-            handleData(fetchOptions.value)
-        }
-    })
+    const clearSearch = () => {
+        emit('search', '')
+    }
 
 </script>
 
