@@ -74,6 +74,7 @@
                     chips
                     return-object
                     hide-details="auto"
+                    :error-messages="handleError('companies')"
                 ></v-autocomplete>
             </v-col>
         </v-row>
@@ -111,7 +112,8 @@
                     item-title="label"
                     item-value="id"
                     v-model="props.data.status" 
-                    hide-details="auto"                   
+                    hide-details="auto"                 
+                    :error-messages="handleError('status_id')"  
                     return-object
                 >
                 </v-autocomplete>
@@ -132,6 +134,7 @@
                     @click:append-inner="password_visible = !password_visible" 
                     :hint="computedHint"
                     hide-details="auto"
+                    :error-messages="handleError('password')"
                 ></v-text-field>
             </v-col>
         </v-row>

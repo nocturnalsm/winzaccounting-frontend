@@ -16,8 +16,8 @@
     >
         <template v-slot:top>
             <v-dialog v-model="dialogDelete" max-width="500px">
-                <v-card>
-                    <v-card-title class="text-h6">{{ deleteConfirmText }}</v-card-title>
+                <v-card class="text-center pa-2">
+                    <v-card-title class="text-body-1 font-weight-medium">{{ deleteConfirmText }}</v-card-title>
                     <v-card-actions>
                         <v-spacer></v-spacer>
                         <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>

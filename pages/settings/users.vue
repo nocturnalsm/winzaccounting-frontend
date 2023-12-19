@@ -19,7 +19,8 @@
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
                     @add-click="handleAdd"
-                    @edit-click="handleEdit"                    
+                    @edit-click="handleEdit"         
+                    @delete-click="handleDelete"           
                     @search="handleSearch"
                 >
                     <template #item.roles="{ item }">
@@ -159,4 +160,22 @@
         })
     }
 
+    const handleDelete = async user => {
+        try {
+            const response = await $fetchApi(`/admin/users/${user.id}`, {
+                method: "DELETE"
+            })
+            $toast({
+                message: "Data has been successfully deleted",
+                state: 'success'
+            })
+            fetchData()
+        }
+        catch (err){
+            $toast({
+                message: err.response ? err.response._data.message : "Error on deleting. Please try again",
+                state: 'error'
+            })
+        }
+    }
 </script>

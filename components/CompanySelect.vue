@@ -13,8 +13,8 @@
                 </v-btn>
             </template>
 
-            <v-list v-if="data">
-                <template :key="index" v-for="(item, index) in data">
+            <v-list v-if="companies">
+                <template :key="index" v-for="(item, index) in computedData">
                     <v-list-item href="company" @click.prevent="event => selectCompany(item.id)">
                         <v-list-item-title>{{ item.name }}</v-list-item-title>                            
                     </v-list-item>
@@ -27,15 +27,33 @@
 <script setup>
     
     import { activeCompany } from '~/store/activeCompany'
-
-    const props = defineProps({
-        data: {
-            type: Array,            
+    import { ref, computed } from 'vue'
+    
+    const companies = ref(null)
+        
+    const response = await $fetchApi('/admin/companies', {
+        params: {
+            limit: -1,
+            sort: 'name'
         }
     })
     
+    companies.value = response
+    
+    const company = window.localStorage.getItem('company')
+    
+    if (company){
+        console.log(company)
+        activeCompany.set(JSON.parse(company))
+    }
+    else {
+        let first = companies.value[0]
+        activeCompany.set(first)
+        window.localStorage.setItem('company', JSON.stringify(first))
+    }
+    
     const selectCompany = item => {
-        const find = props.data.find(itm => item == itm.id)
+        const find = companies.value.find(itm => item == itm.id)
         
         activeCompany.set(find)
         
@@ -46,4 +64,8 @@
             })
         }
     }
+
+    const computedData = computed(() => {        
+        return companies.value.filter(item => item.id != activeCompany?.company.id)
+    })
 </script>

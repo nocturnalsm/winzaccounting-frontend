@@ -2,7 +2,7 @@
   <v-app id="inspire">
     <Toast />
     <v-system-bar>
-      <CompanySelect :data="companies"/>
+      <CompanySelect />
     </v-system-bar>
 
     <v-app-bar>
@@ -37,40 +37,17 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue'    
-    import { computed } from 'vue'
-    import { activeCompany } from '~/store/activeCompany'
-    
-    const companies = ref(null)
-        
+    import { computed } from 'vue'    
+
     const appTitle = computed(() => {
         const config = useRuntimeConfig()
         return config.public.appTitle
     })
+
     const drawer = ref(null)
+
     useHead({
         title: appTitle,
     })
-
-    const response = await $fetchApi('/admin/companies', {
-        params: {
-            limit: -1,
-            sort: 'name'
-        }
-    })
-    
-    companies.value = response
-    
-    const company = window.localStorage.getItem('company')
-    
-    if (company){
-        console.log(company)
-        activeCompany.set(JSON.parse(company))
-    }
-    else {
-        let first = companies.value[0]
-        activeCompany.set(first)
-        window.localStorage.setItem('company', JSON.stringify(first))
-    }
 
 </script>
