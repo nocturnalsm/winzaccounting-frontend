@@ -26,57 +26,6 @@
 
         <v-row dense no-gutters>
             <v-col cols="12" md="4">
-                <v-list-subheader>Company Type</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-autocomplete
-                    density="compact"
-                    label="Company Type"
-                    :items="company_types"
-                    item-title="type"
-                    item-value="id"
-                    v-model="props.data.type" 
-                    hide-details="auto"                 
-                    :error-messages="handleError('company_type')"  
-                    return-object
-                >
-                </v-autocomplete>
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Tax Number</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-text-field
-                    density="compact"
-                    label="Tax Number"
-                    v-model="props.data.tax_number"
-                    hide-details="auto"                    
-                ></v-text-field>
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>URL</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-text-field
-                    density="compact"
-                    label="URL"
-                    v-model="props.data.url"
-                    hide-details="auto"                    
-                ></v-text-field>
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
                 <v-list-subheader>Status</v-list-subheader>
             </v-col>
 
@@ -103,7 +52,6 @@
 
     import { ref, computed, onMounted } from 'vue'
 
-    const company_types = ref([])
     const statuses = ref([])
     const errors = ref(null)
     const loading = ref(false)
@@ -123,12 +71,11 @@
             errors.value = null
             let submit = {
                 ...props.data,
-                company_type: props.data.type?.id,
                 status_id: props.data.status?.id
             }
             console.log(submit)
             try {
-                const response = await $fetchApi(`/admin/companies${param}`, {
+                const response = await $fetchApi(`/admin/roles${param}`, {
                     method: submit.id ? 'PUT' : 'POST',
                     body: submit
                 })
@@ -151,10 +98,10 @@
     const computedTitle = computed(() => {
         if (props.data){
             if (!props.data.id){
-                return "Add Company"
+                return "Add Role"
             }
             else {
-                return "Edit Company"
+                return "Edit Role"
             }
         }
     })
@@ -173,13 +120,6 @@
             }
         })
 
-        const responseTypes = await $fetchApi('/admin/companies/types', {
-            params: {
-                limit: -1,
-                sort: 'type'
-            }
-        })
-        company_types.value = responseTypes
 
     })
 

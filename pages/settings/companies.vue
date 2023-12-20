@@ -2,6 +2,7 @@
     <v-row>
         <v-col cols="12">
             <CompanyForm 
+                v-if="edited"
                 @success="handleSuccess" 
                 @error="handleError" 
                 @close="edited = null" 
@@ -23,6 +24,11 @@
                 >
                     <template #item.type="{ item }">
                         {{ item.type.type }}
+                    </template>
+                    <template #item.status="{ item }">
+                        <v-chip :color="item.status.color">
+                            {{ item.status.label }}
+                        </v-chip>
                     </template>
                 </DataTable>
             </v-card>
@@ -55,6 +61,10 @@
         {
             title: 'Company Type',
             key: 'type'
+        },
+        {
+            title: 'Status',
+            key: 'status',            
         }
     ])
 
