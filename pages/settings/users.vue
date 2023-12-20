@@ -53,7 +53,6 @@
     const totalRecords = ref(0)
     const fetchParams = ref(null)
     const edited = ref(null)
-    const errors = ref(null)
     
     const headers = ref([
         {
