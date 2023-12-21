@@ -100,12 +100,12 @@
     const actionButtons = {
         editButton: {
             show: item => {
-                return user.permissions.includes('roles.update')
+                return (user.system && user.role.includes('Super Admin')) && user.permissions.includes('roles.update')
             }
         },
         deleteButton: {
             show: item => {
-                return user.permissions.includes('roles.delete')
+                return (user.system && user.role.includes('Super Admin')) && user.permissions.includes('roles.delete')
             }
         }
     }

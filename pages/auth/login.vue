@@ -21,7 +21,7 @@
                 autofocus
                 density="compact"
                 v-model="credentials.username"
-                placeholder="Username"
+                placeholder="Username or Email"
                 prepend-inner-icon="mdi-account-outline"
                 variant="outlined"
                 :error-messages="handleError('username')"
