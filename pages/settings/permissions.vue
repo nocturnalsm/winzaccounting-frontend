@@ -14,6 +14,7 @@
                     :loading="loading"         
                     :data="permissions"
                     :headers="headers"
+                    :actionButtons="actionButtons"
                     title="Permissions"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"

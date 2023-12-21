@@ -14,6 +14,7 @@
                     :loading="loading"         
                     :data="companies"
                     :headers="headers"
+                    :actionButtons="actionButtons"
                     title="Companies"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"

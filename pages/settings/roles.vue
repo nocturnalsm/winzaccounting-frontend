@@ -14,6 +14,7 @@
                     :loading="loading"         
                     :data="roles"
                     :headers="headers"
+                    :actionButtons="actionButtons"
                     title="Roles"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
@@ -100,12 +101,19 @@
     const actionButtons = {
         editButton: {
             show: item => {
-                return (user.system && user.role.includes('Super Admin')) && user.permissions.includes('roles.update')
+                console.log(user)                
+                if (item.system && user.role.includes('Super Admin')){
+                    return true
+                }
+                return user.permission.includes('roles.update')
             }
         },
         deleteButton: {
             show: item => {
-                return (user.system && user.role.includes('Super Admin')) && user.permissions.includes('roles.delete')
+                if (item.system && user.role.includes('Super Admin')){
+                    return true
+                }
+                return user.permission.includes('roles.delete')
             }
         }
     }

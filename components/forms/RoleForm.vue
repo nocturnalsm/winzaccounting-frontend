@@ -50,6 +50,7 @@
 
 <script setup>
 
+    import { activeCompany } from '~/store/activeCompany';
     import { ref, computed, onMounted } from 'vue'
 
     const statuses = ref([])
@@ -71,9 +72,9 @@
             errors.value = null
             let submit = {
                 ...props.data,
-                status_id: props.data.status?.id
+                status_id: props.data.status?.id,
+                company_id: activeCompany.company.id
             }
-            console.log(submit)
             try {
                 const response = await $fetchApi(`/admin/roles${param}`, {
                     method: submit.id ? 'PUT' : 'POST',
