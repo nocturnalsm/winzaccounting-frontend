@@ -53,7 +53,8 @@
     const totalRecords = ref(0)
     const fetchParams = ref(null)
     const edited = ref(null)
-    
+    const { user } = useAuth()
+
     const headers = ref([
         {
             title: 'Name',
@@ -100,9 +101,13 @@
     }   
 
     const actionButtons = {
+
         editButton: {
             show: item => {
                 let super_admin = item.roles.find(item => item.name == 'Super Admin')
+                if (super_admin){
+                    return user.id == item.id
+                }
                 return !super_admin
             },
             order: 1
@@ -110,6 +115,9 @@
         deleteButton: {
             show: item => {
                 let super_admin = item.roles.find(item => item.name == 'Super Admin')
+                if (super_admin){
+                    return user.id == item.id
+                }
                 return !super_admin
             },
             order: 2

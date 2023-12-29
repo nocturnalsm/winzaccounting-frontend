@@ -52,17 +52,24 @@
         title: appTitle,
     })
 
-    const company = window.localStorage.getItem('company')
-    
+    const company = window.localStorage.getItem('company')    
     if (company){
-        activeCompany.set(JSON.parse(company))
+        let parsed = JSON.parse(company)
+        let index = user.companies.findIndex(item => item.id == parsed.id)   
+        if (index >= 0){
+          activeCompany.set(parsed)
+        }
+        else {
+          let first = user.companies[0]
+          activeCompany.set(first)
+          window.localStorage.setItem('company', JSON.stringify(first))  
+        }
     }
-    else {
-        console.log(user)
+    else {        
         let first = user.companies[0]
         activeCompany.set(first)
         window.localStorage.setItem('company', JSON.stringify(first))
     }
-    
+    console.log(activeCompany)
 
 </script>

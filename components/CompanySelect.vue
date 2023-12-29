@@ -1,7 +1,7 @@
 <template> 
     <div v-if="activeCompany.company" class="d-flex align-center text-caption">
         Company: <span class="text-body-2 text-decoration-underline">{{ activeCompany.company.name }}</span>
-        <v-menu open-on-hover>
+        <v-menu v-if="computedData.length > 0" open-on-hover>
             <template v-slot:activator="{ props }">
                 <v-btn
                     v-bind="props"    
@@ -13,7 +13,7 @@
                 </v-btn>
             </template>
 
-            <v-list v-if="companies">
+            <v-list>
                 <template :key="index" v-for="(item, index) in computedData">
                     <v-list-item href="company" @click.prevent="event => selectCompany(item.id)">
                         <v-list-item-title>{{ item.name }}</v-list-item-title>                            
@@ -53,7 +53,10 @@
         }
     }
 
-    const computedData = computed(() => {        
-        return companies.value.filter(item => item.id != activeCompany?.company.id)
+    const computedData = computed(() => {  
+        if (companies.value){
+            return companies.value.filter(item => item.id != activeCompany?.company.id)
+        }
+        return []
     })
 </script>

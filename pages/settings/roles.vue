@@ -105,7 +105,7 @@
                 if (item.system && user.role.includes('Super Admin')){
                     return true
                 }
-                return user.permission.includes('roles.update')
+                return user.permissions.includes('roles.update')
             }
         },
         deleteButton: {
@@ -113,7 +113,7 @@
                 if (item.system && user.role.includes('Super Admin')){
                     return true
                 }
-                return user.permission.includes('roles.delete')
+                return user.permissions.includes('roles.delete')
             }
         }
     }
