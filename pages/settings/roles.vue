@@ -100,8 +100,7 @@
 
     const actionButtons = {
         editButton: {
-            show: item => {
-                console.log(user)                
+            show: item => {    
                 if (item.system && user.role.includes('Super Admin')){
                     return true
                 }

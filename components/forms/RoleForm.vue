@@ -5,7 +5,7 @@
         :loading="loading"
         @submit="handleSubmit"
         @close="handleClose"
-        :width="800"        
+        :width="1024"        
     >    
         <v-row dense no-gutters>
             <v-col cols="12" md="4">
@@ -44,6 +44,33 @@
                 </v-autocomplete>
             </v-col>
         </v-row>
+
+        <v-row dense no-gutters>
+            <v-col cols="12">
+                <v-list-subheader>Permissions</v-list-subheader>
+            </v-col>
+            <v-col cols="12">
+                <v-list density="compact" class="pa-0 permission-list">
+                    <template v-for="item in computedPermissions">
+                        <v-list-item                        
+                            class="py-4 px-0"
+                        >
+                            <v-list-subheader class="px-0 text-capitalize">{{ item.title }}</v-list-subheader>
+                            <v-row dense no-gutters>
+                                <v-col class="text-body-2" v-for="permission in item.items" cols="3">
+                                    <v-checkbox
+                                        density="compact"
+                                        hide-details                                                                    
+                                        :label="permission.name"
+                                    ></v-checkbox>
+                                </v-col>
+                            </v-row>
+                        </v-list-item>
+                        <v-divider></v-divider>
+                    </template>
+                </v-list>
+            </v-col>
+        </v-row>
         
     </ModalForm>
 </template>
@@ -54,6 +81,7 @@
     import { ref, computed, onMounted } from 'vue'
 
     const statuses = ref([])
+    const permissions = ref(null)
     const errors = ref(null)
     const loading = ref(false)
     const props = defineProps({
@@ -120,7 +148,20 @@
                 label: item.label
             }
         })
-
+        const responsePermissions = await $fetchApi('/admin/permissions', {
+            params: {
+                limit: -1,
+                sort: 'name'
+            }
+        })
+        permissions.value = responsePermissions.reduce((list, item) => {
+            let split = item.name.split('.')    
+            if (!list.hasOwnProperty(split[0])){
+                list[split[0]] = Array()
+            }
+            list[split[0]].push(item)
+            return list
+        }, {})
 
     })
 
@@ -133,5 +174,29 @@
         }
         return ''
     }
+
+    const computedPermissions = computed(() => {
+        if (permissions.value){
+            return Object.keys(permissions.value).map(item => {
+                return {
+                    title: item,
+                    items: permissions.value[item]
+                }
+            })
+        }
+        return []
+    })
     
 </script>
+
+<style scoped>
+    :deep(.permission-list){
+        height: 80%;
+    }
+    :deep(.permission-list .v-checkbox label.v-label) {
+        font-size: 0.9rem;
+    }
+    :deep(.permission-list .v-checkbox .v-selection-control__input i) {
+        font-size: 1.2rem;
+    }
+</style>
