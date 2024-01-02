@@ -20,7 +20,7 @@
                     v-model="props.data.name"
                     hide-details="auto"
                     :error-messages="handleError('name')"
-                ></v-text-field>
+                ></v-text-field>                
             </v-col>
         </v-row>
 
@@ -58,6 +58,14 @@
                     sticky             
                 >
                     <template v-slot:bottom></template>
+                    <template #item="{ item, isSelected, toggleSelect }">
+                        <tr>
+                            <td :class="item.selectable.header ? 'bg-grey-lighten-3' : null">
+                                <v-checkbox hide-details density="compact" :v-model="isSelected" />
+                            </td>
+                            <td :class="item.selectable.header ? 'bg-grey-lighten-3' : null">{{  item.selectable.name }}</td>
+                        </tr>
+                    </template>
                 </v-data-table>
             </v-col>
         </v-row>
@@ -152,13 +160,19 @@
         permissions.value = responsePermissions.reduce((list, item, index) => {
             let split = item.name.split('.')    
             if (index > 0){
-                let old_split = list[index - 1].name.split('.')
+                let old_split = list[list.length - 1].name.split('.')
                 if (old_split[0] !== split[0]){
                     list.push({
-                        type: 'header',
+                        header: true,
                         name: split[0]
                     })
                 }
+            }
+            else {
+                list.push({
+                    header: true,
+                    name: split[0]
+                })
             }
             list.push(item)
             return list
