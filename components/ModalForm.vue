@@ -4,43 +4,42 @@
       v-model="props.visible"
       persistent
       :width="props.width"
+      v-bind="$attrs"
     >     
     <form @submit.prevent="handleSubmit"> 
-        <fieldset :disabled="props.loading">
-      <v-card :loading="props.loading">
-        <v-toolbar
-          dark
-          color="primary"
-        >          
-          <v-toolbar-title>{{ props.title }}</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn
-            icon
-            dark
-            @click="handleClose"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-card-text>
-          <v-container>
-            <slot></slot>            
-          </v-container>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>          
-          <v-btn
-            variant="flat"
+      <fieldset :disabled="props.loading">
+        <v-card :loading="props.loading">
+          <v-toolbar
             dark
             color="primary"
-            type="submit"     
-            class="px-4"                   
-          >
-            <v-icon class="mr-2">mdi-check</v-icon>
-            Save
-          </v-btn>
-        </v-card-actions>
-      </v-card>
+          >          
+            <v-toolbar-title>{{ props.title }}</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn
+              icon
+              dark
+              @click="handleClose"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-container class="pb-0">
+            <slot></slot>            
+          </v-container>
+          <v-card-actions>
+            <v-spacer></v-spacer>          
+            <v-btn
+              variant="flat"
+              dark
+              color="primary"
+              type="submit"     
+              class="px-4"                   
+            >
+              <v-icon class="mr-2">mdi-check</v-icon>
+              Save
+            </v-btn>
+          </v-card-actions>
+        </v-card>
       </fieldset>
       </form>
     </v-dialog>

@@ -70,6 +70,5 @@
         activeCompany.set(first)
         window.localStorage.setItem('company', JSON.stringify(first))
     }
-    console.log(activeCompany)
 
 </script>

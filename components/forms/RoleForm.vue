@@ -5,7 +5,7 @@
         :loading="loading"
         @submit="handleSubmit"
         @close="handleClose"
-        :width="1024"        
+        :width="1024"             
     >    
         <v-row dense no-gutters>
             <v-col cols="12" md="4">
@@ -45,30 +45,20 @@
             </v-col>
         </v-row>
 
-        <v-row dense no-gutters>
-            <v-col cols="12">
-                <v-list-subheader>Permissions</v-list-subheader>
-            </v-col>
-            <v-col cols="12">
-                <v-list density="compact" class="pa-0 permission-list">
-                    <template v-for="item in computedPermissions">
-                        <v-list-item                        
-                            class="py-4 px-0"
-                        >
-                            <v-list-subheader class="px-0 text-capitalize">{{ item.title }}</v-list-subheader>
-                            <v-row dense no-gutters>
-                                <v-col class="text-body-2" v-for="permission in item.items" cols="3">
-                                    <v-checkbox
-                                        density="compact"
-                                        hide-details                                                                    
-                                        :label="permission.name"
-                                    ></v-checkbox>
-                                </v-col>
-                            </v-row>
-                        </v-list-item>
-                        <v-divider></v-divider>
-                    </template>
-                </v-list>
+        <v-row dense no-gutters class="pb-0">
+            <v-col cols="12" class="mt-8 pb-0">
+                <v-data-table
+                    :headers="headers"
+                    :items="permissions"
+                    :search="search"
+                    :items-per-page="-1"
+                    show-select
+                    density="compact"
+                    height="350px"                           
+                    sticky             
+                >
+                    <template v-slot:bottom></template>
+                </v-data-table>
             </v-col>
         </v-row>
         
@@ -81,9 +71,10 @@
     import { ref, computed, onMounted } from 'vue'
 
     const statuses = ref([])
-    const permissions = ref(null)
+    const permissions = ref([])
     const errors = ref(null)
     const loading = ref(false)
+    const search = ref('')
     const props = defineProps({
         data: {
             type: Object,
@@ -92,6 +83,9 @@
     })
     
     const emits = defineEmits(['success', 'error', 'close'])        
+    const headers = [
+        { key: 'name', title: 'Permissions' }
+    ]
 
     const handleSubmit = async () => {
         if (props.data){
@@ -154,14 +148,21 @@
                 sort: 'name'
             }
         })
-        permissions.value = responsePermissions.reduce((list, item) => {
+        
+        permissions.value = responsePermissions.reduce((list, item, index) => {
             let split = item.name.split('.')    
-            if (!list.hasOwnProperty(split[0])){
-                list[split[0]] = Array()
+            if (index > 0){
+                let old_split = list[index - 1].name.split('.')
+                if (old_split[0] !== split[0]){
+                    list.push({
+                        type: 'header',
+                        name: split[0]
+                    })
+                }
             }
-            list[split[0]].push(item)
+            list.push(item)
             return list
-        }, {})
+        }, [])
 
     })
 
@@ -173,26 +174,11 @@
             }
         }
         return ''
-    }
-
-    const computedPermissions = computed(() => {
-        if (permissions.value){
-            return Object.keys(permissions.value).map(item => {
-                return {
-                    title: item,
-                    items: permissions.value[item]
-                }
-            })
-        }
-        return []
-    })
+    }    
     
 </script>
 
 <style scoped>
-    :deep(.permission-list){
-        height: 80%;
-    }
     :deep(.permission-list .v-checkbox label.v-label) {
         font-size: 0.9rem;
     }
