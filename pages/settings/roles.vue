@@ -24,8 +24,11 @@
                     @search="handleSearch"
                 >                    
                     <template #item.permissions="{ item }">
-                        <v-chip class="mr-2" color="primary" v-for="permission in item.permissions">
-                            {{ permission.name }}
+                        <v-chip class="mr-2" color="primary" v-for="i in item.permissions.length > 3 ? 3 : item.permissions.length">
+                            {{ item.permissions[i - 1].name }}                            
+                        </v-chip>
+                        <v-chip color="primary" v-if="item.permissions.length > 3">
+                            +{{ item.permissions.length - 3 }} more
                         </v-chip>
                     </template>
                     <template #item.status="{ item }">
@@ -94,8 +97,8 @@
     }
 
     const handleEdit = data => {
-        const { id, name, status } = data
-        edited.value = { id, name, status }
+        const { id, name, status, permissions } = data
+        edited.value = { id, name, status, permissions }
     }
 
     const actionButtons = {
@@ -131,7 +134,8 @@
     const handleAdd = () => {
         edited.value = {
             name: '',            
-            status: null
+            status: null,
+            permissions: []
         }
     }
 

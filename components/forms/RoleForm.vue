@@ -59,11 +59,29 @@
                 >
                     <template v-slot:bottom></template>
                     <template #item="{ item, isSelected, toggleSelect }">
-                        <tr>
-                            <td :class="item.selectable.header ? 'bg-grey-lighten-3' : null">
-                                <v-checkbox hide-details density="compact" :v-model="isSelected" />
+                        <tr v-if="item.selectable.header">
+                            <td class="bg-grey-lighten-3">
+                                <v-checkbox hide-details density="compact" @update:modelValue="val => permissionHeaderClick(val, item.selectable.name)" v-model="item.raw.checked"/>
                             </td>
-                            <td :class="item.selectable.header ? 'bg-grey-lighten-3' : null">{{  item.selectable.name }}</td>
+                            <td class="bg-grey-lighten-3">{{  item.selectable.name }}</td>
+                        </tr>
+                        <tr v-else>
+                            <td></td>
+                            <td>
+                                <v-checkbox density="compact" @update:modelValue="ev => updateItem(item.raw)" :label="item.selectable.name" hide-details v-model="item.raw.checked">
+                                    <template #label="{ label }">
+                                        <span class="px-2">{{ label }}</span>
+                                    </template>
+                                </v-checkbox>
+                            </td>
+                        </tr>
+                    </template>
+                    <template #headers="{ columns }">
+                        <tr>
+                            <td width="5%">
+                                <v-checkbox v-model="checkAll" @update:modelValue="handleCheckAll" hide-details density="compact" />
+                            </td>
+                            <td>Permissions</td>
                         </tr>
                     </template>
                 </v-data-table>
@@ -89,6 +107,7 @@
             default: null
         }
     })
+    const checkAll = ref(false)
     
     const emits = defineEmits(['success', 'error', 'close'])        
     const headers = [
@@ -103,7 +122,9 @@
             let submit = {
                 ...props.data,
                 status_id: props.data.status?.id,
-                company_id: activeCompany.company.id
+                company_id: activeCompany.company.id,
+                permissions: permissions.value.filter(item => !item.header && item.checked)
+                                              .map(item => item.name)
             }
             try {
                 const response = await $fetchApi(`/admin/roles${param}`, {
@@ -159,25 +180,32 @@
         
         permissions.value = responsePermissions.reduce((list, item, index) => {
             let split = item.name.split('.')    
+            item = { ...item, checked: false }
             if (index > 0){
                 let old_split = list[list.length - 1].name.split('.')
                 if (old_split[0] !== split[0]){
                     list.push({
                         header: true,
-                        name: split[0]
+                        name: split[0],
+                        checked: props.data.id ? 
+                                    responsePermissions.filter(i => i.name.startsWith(split[0] +".")).length == props.data.permissions.filter(i => i.name.startsWith(split[0] + ".")).length : false
                     })
                 }
             }
             else {
                 list.push({
                     header: true,
-                    name: split[0]
+                    name: split[0],
+                    checked: props.data.id ? 
+                                responsePermissions.filter(i => i.name.startsWith(split[0] +".")).length == props.data.permissions.filter(i => i.name.startsWith(split[0] + ".")).length : false
                 })
             }
-            list.push(item)
+            list.push({
+                ...item,
+                checked: props.data.permissions.findIndex(i => i.name == item.name) > -1
+            })            
             return list
-        }, [])
-
+        }, [])        
     })
 
     const handleError = field => {
@@ -190,6 +218,39 @@
         return ''
     }    
     
+    const permissionHeaderClick = (val, start) => {        
+        let indexes = permissions.value.reduce((acc, item, index) => {
+            if (item.name.startsWith(start + '.')){
+                acc.push(index)
+            }
+            return acc
+        }, [])
+        
+        indexes.forEach(item => {
+            permissions.value[item].checked = val
+        })        
+        if (!val){
+            checkAll.value = false
+        }
+    }
+    
+    const updateItem = value => {        
+        if (value.checked){
+            let split = value.name.split(".")
+            let index = permissions.value.findIndex(item => item.name == split[0])            
+            if (index >= 0){
+                permissions.value[index].checked = false
+                checkAll.value = false
+            }
+        }
+    }
+
+    const handleCheckAll = value => {
+        permissions.value.forEach((item, index) => {
+            permissions.value[index].checked = value
+        })
+    }
+
 </script>
 
 <style scoped>
