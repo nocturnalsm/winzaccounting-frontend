@@ -46,8 +46,8 @@
         </v-row>
 
         <v-row dense no-gutters class="pb-0">
-            <v-col cols="12" class="mt-8 pb-0">
-                <v-data-table
+            <v-col cols="12" class="pb-0">
+                <v-data-table class="mt-4"
                     :headers="headers"
                     :items="permissions"
                     :search="search"
@@ -58,6 +58,18 @@
                     sticky             
                 >
                     <template v-slot:bottom></template>
+                    <template v-slot:top>
+                        <v-text-field
+                            class="pb-2"
+                            v-model="search"
+                            placeholder="Search"
+                            clearable
+                            prepend-inner-icon="mdi-magnify"
+                            single-line
+                            variant="outlined"
+                            hide-details
+                        ></v-text-field>
+                    </template>
                     <template #item="{ item, isSelected, toggleSelect }">
                         <tr v-if="item.selectable.header">
                             <td class="bg-grey-lighten-3">
@@ -108,7 +120,8 @@
         }
     })
     const checkAll = ref(false)
-    
+    const searchPermission = ref('')
+
     const emits = defineEmits(['success', 'error', 'close'])        
     const headers = [
         { key: 'name', title: 'Permissions' }
