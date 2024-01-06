@@ -99,7 +99,7 @@
             </template>            
         </template>        
         <template v-for="(_, name) in $slots" #[name]="{ item }">
-            <slot :name="name" :item="item.raw" />
+            <slot :name="name" :item="item ? item.raw : null" />
         </template>
     </v-data-table-server>
 </template>

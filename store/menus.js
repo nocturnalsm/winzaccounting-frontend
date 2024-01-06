@@ -9,7 +9,8 @@ const items = ref([
         title: 'Setup',
         children: [
             {
-                title: 'Accounts',                        
+                title: 'Accounts',
+                route: { name: 'setup-accounts' }                        
             },
             {
                 title: 'Customers'
