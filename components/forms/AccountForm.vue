@@ -18,10 +18,13 @@
                     label="Account Type"
                     :items="account_types"
                     v-model="props.data.type"
+                    autofocus
                     item-title="name"
                     item-value="id"
                     return-object
                     hide-details="auto"
+                    :clearable="false"
+                    @update:model-value="handleTypeChange"
                     :error-messages="handleError('type')"
                 ></v-autocomplete>
             </v-col>
@@ -29,16 +32,48 @@
         
         <v-row dense no-gutters>
             <v-col cols="12" md="4">
+                <v-list-subheader>Parent Account</v-list-subheader>
+            </v-col>
+
+            <v-col cols="12" md="8">
+                <v-autocomplete
+                    density="compact"
+                    label="Parent Account"
+                    :items="parents"
+                    v-model="props.data.parent"
+                    item-title="numbername"
+                    item-value="id"                    
+                    return-object
+                    hide-details="auto"
+                >                    
+                    <template #selection="{ item }">
+                        <span class="font-weight-bold mr-2">{{ item.value.completenumber }}</span>
+                        <span>{{  item.value.name }}</span>
+                    </template>
+                    <template #item="{ props, item }">
+                        <v-list-item v-bind="props">
+                            <template #title>
+                                <span class="font-weight-bold mr-2">{{ item.raw.completenumber }}</span>
+                                <span>{{  item.raw.name }}</span>
+                            </template>
+                        </v-list-item>
+                    </template>
+                </v-autocomplete>
+            </v-col>
+        </v-row>
+
+        <v-row dense no-gutters>
+            <v-col cols="12" md="4">
                 <v-list-subheader>Account Number</v-list-subheader>
             </v-col>
 
             <v-col cols="12" md="8">
                 <v-text-field
-                    autofocus
                     density="compact"
                     label="Account Number"
                     v-model="props.data.number"
                     hide-details="auto"
+                    :prefix="computedPrefix"
                     :error-messages="handleError('number')"
                 ></v-text-field>
             </v-col>
@@ -59,25 +94,7 @@
                 ></v-text-field>
             </v-col>
         </v-row>        
-        
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Parent Account</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-autocomplete
-                    density="compact"
-                    label="Parent Account"
-                    :items="parents"
-                    v-model="props.data.parent"
-                    item-title="name"
-                    item-value="id"                    
-                    return-object
-                    hide-details="auto"
-                ></v-autocomplete>
-            </v-col>
-        </v-row>
+                
         <v-row dense no-gutters>
             <v-col cols="12" md="4">
                 <v-list-subheader>Status</v-list-subheader>
@@ -104,6 +121,7 @@
 <script setup>
 
     import { ref, computed, onMounted } from 'vue'
+    import { activeCompany } from '~/store/activeCompany';
 
     const parents = ref([])
     const account_types = ref([])
@@ -125,11 +143,15 @@
             loading.value = true        
             errors.value = null
             let submit = {
-                ...props.data,                
-                status_id: props.data.status?.id
-            }
+                company_id: activeCompany.company.id,
+                status_id: props.data.status?.id,
+                account_type: props.data.type?.id,
+                parent: props.data.parent?.id,
+                number: props.data.parent.number + props.data.number,
+                name: props.data.name
+            }            
             try {
-                const response = await $fetchApi(`/admin/accounts${param}`, {
+                const response = await $fetchApi(`/setup/accounts${param}`, {
                     method: submit.id ? 'PUT' : 'POST',
                     body: submit
                 })
@@ -182,10 +204,18 @@
     const getParents = async () => {
         const responseParents = await $fetchApi('/setup/accounts/parents', {
             params: {
-                id: props.data.id
+                id: props.data.id ?? null,
+                type: props.data.type.id,
+                company_id: activeCompany.id
             }
         })
-        account_parents.value = responseParents
+        parents.value = responseParents.map(item => {
+            return {
+                ...item,
+                completenumber: item.type.prefix + '-' + item.number,
+                numbername: item.type.prefix + '-' + item.number + ' ' + item.name,
+            }
+        })
     }
 
     const handleError = field => {
@@ -205,4 +235,17 @@
         return ''
     })
 
+    const computedPrefix = computed(() => {
+        let prefix = props.data.type ? props.data.type.prefix : ''
+        let parent = props.data.parent !== null ? props.data.parent.number : ''
+        return prefix + '-' + parent
+    })
+
+    const handleTypeChange = value => {
+        parents.value = []
+        props.data.parent = null
+        if (value){
+            getParents(props.data.id ?? null)
+        }
+    }
 </script>

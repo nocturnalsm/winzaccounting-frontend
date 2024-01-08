@@ -44,7 +44,7 @@
                     </template>    
                     <template #actionButtons="{ item }">
                         <v-btn                                            
-                            :class="order-0"
+                            class="order-0"
                             title="View"
                             color="default"
                             icon="mdi-eye"
@@ -60,6 +60,7 @@
 
 <script setup>
     
+    import { activeCompany } from '~/store/activeCompany';
     import { ref } from 'vue'
 
     definePageMeta({
@@ -109,7 +110,10 @@
             ...fetchParams.value,            
             ...params,
             limit: -1,
-            sort: 'number'
+            sort: 'number',
+            filter: {
+                company_id: activeCompany.company.id
+            }
         }
         
         const response = await $fetchApi('/setup/accounts', {
@@ -118,7 +122,6 @@
         accounts.value = response        
         totalRecords.value = response.length
         fetchParams.value = newParams
-        console.log(fetchParams.value)
         loading.value = false       
     }
 
