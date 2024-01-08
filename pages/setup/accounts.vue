@@ -1,7 +1,7 @@
 <template>      
     <v-row>
         <v-col cols="12">
-            <UserForm 
+            <AccountForm 
                 v-if="edited"
                 @success="handleSuccess" 
                 @error="handleError" 
@@ -156,7 +156,8 @@
             number: '',
             name: '',
             type: null,
-            status: null
+            status: null,
+            parent: null
         }
     }
 
