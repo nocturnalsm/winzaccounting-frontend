@@ -25,11 +25,11 @@
                     hide-default-footer                    
                 >               
                     <template #item.number="{ item }">
-                        <span :class="`${item.depth == 0 ? 'font-weight-bold' : ''}`" v-if="fetchParams.hasOwnProperty('filter') && fetchParams.filter">
-                            {{ item.number }}
+                        <span :class="`${item.depth == 0 ? 'font-weight-bold' : ''}`" v-if="fetchParams.filter.length > 1 && fetchParams.filter">
+                            {{ item.prefix }}{{ item.number }}
                         </span>
                         <span :class="`${item.depth == 0 ? 'font-weight-bold' : ''}`" v-else>
-                            {{ ('--').repeat(item.depth) }} {{ item.number }}
+                            {{ ('&#9472;').repeat(item.depth) }} {{ item.prefix }}{{ item.number }}
                         </span>
                     </template>                    
                     <template #item.status="{ item }">
@@ -126,8 +126,19 @@
     }
 
     const handleEdit = data => {
-        const { id, number, name, type, status } = data
-        edited.value = { id, number, name, type, status }
+        const { id, number, name, account_type, accountType, prefix, status, parent } = data
+        let type = {
+            id: account_type,
+            name: accountType,
+            prefix: prefix
+        }
+        let editParent = parent ? {
+            ...parent,
+            completenumber: prefix + parent.number,
+            numbername: prefix + parent.number + ' ' + name,
+        } : null
+        let editNumber = number.substring(parent? parent.number.length : 1)
+        edited.value = { id, number: editNumber, name, type, status, parent: editParent }
     }   
 
     const actionButtons = {

@@ -45,6 +45,7 @@
                     item-value="id"                    
                     return-object
                     hide-details="auto"
+                    clearable
                 >                    
                     <template #selection="{ item }">
                         <span class="font-weight-bold mr-2">{{ item.value.completenumber }}</span>
@@ -142,7 +143,9 @@
             let param = props.data.id ? `/${props.data.id}` : ''        
             loading.value = true        
             errors.value = null
-            let submit = {
+            let submit = props.data.id ? { id: props.data.id } : {} 
+            submit = {
+                ...submit,
                 company_id: activeCompany.company.id,
                 status_id: props.data.status?.id,
                 account_type: props.data.type?.id,
@@ -198,6 +201,10 @@
 
         const responseTypes = await $fetchApi('/setup/accounts/types');
         account_types.value = responseTypes
+
+        if (props.data.id){            
+            getParents()
+        }
         
     })
 
@@ -238,7 +245,8 @@
     const computedPrefix = computed(() => {
         let prefix = props.data.type ? props.data.type.prefix : ''
         let parent = props.data.parent !== null ? props.data.parent.number : ''
-        return prefix + '-' + parent
+        let all = prefix + '-' + parent
+        return all == '-' ? '' : all
     })
 
     const handleTypeChange = value => {
