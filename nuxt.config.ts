@@ -2,7 +2,7 @@
 
 export default defineNuxtConfig({  
   css: [
-    'vuetify/lib/styles/main.sass',
+    '~/assets/css/main.css',
     '@mdi/font/css/materialdesignicons.min.css',
   ],
   build: {
@@ -32,6 +32,7 @@ export default defineNuxtConfig({
   modules: [  
     'nuxt-sanctum-auth',
     '@pinia/nuxt',            
+    'nuxt-primevue'
   ],
   ssr: false,
   nuxtSanctumAuth: {
@@ -49,4 +50,16 @@ export default defineNuxtConfig({
         logout: '/auth/login'
       }
   },
+  devtools: { enabled: true },
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
+  primevue: {
+    options: {
+      unstyled: true
+    },
+  }
 })
