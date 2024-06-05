@@ -1,144 +1,182 @@
 <template>
-    <ModalForm 
-        :title="computedTitle" 
-        :visible="props.data != null"        
+    <v-card     
+        :visible="data != null"        
         :loading="loading"
         @submit="handleSubmit"
-        @close="handleClose"
-        :width="800"        
-    >    
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Name</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-text-field
-                    autofocus
-                    density="compact"
-                    label="Name"
-                    v-model="props.data.name"
-                    hide-details="auto"
-                    :error-messages="handleError('name')"
-                ></v-text-field>
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Username</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-text-field
-                    density="compact"
-                    label="Username"
-                    v-model="props.data.username"     
-                    hide-details="auto"
-                    :error-messages="handleError('username')"
-                ></v-text-field>
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Email</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-text-field
-                    density="compact"
-                    type="email"
-                    label="Email address"
-                    v-model="props.data.email" 
-                    hide-details="auto"         
-                    :error-messages="handleError('email')"
-                ></v-text-field>
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Company</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-autocomplete
-                    density="compact"
-                    label="Company"
-                    :items="companies"
-                    v-model="props.data.companies"
-                    item-title="name"
-                    item-value="id"
-                    multiple
-                    chips
-                    return-object
-                    hide-details="auto"
-                    :error-messages="handleError('companies')"
-                ></v-autocomplete>
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Roles</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-autocomplete
-                    density="compact"
-                    label="Roles"
-                    :items="roles"
-                    v-model="props.data.roles"
-                    item-title="name"
-                    item-value="id"
-                    multiple
-                    return-object
-                    chips
-                    hide-details="auto"
-                ></v-autocomplete>
-            </v-col>
-        </v-row>
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Status</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-autocomplete
-                    density="compact"
-                    label="Status"
-                    :items="statuses"
-                    item-title="label"
-                    item-value="id"
-                    v-model="props.data.status" 
-                    hide-details="auto"                 
-                    :error-messages="handleError('status_id')"  
-                    return-object
+        class="rounded-lg text-body-1"
+        :disabled="loading"
+    >            
+        <v-toolbar dense>               
+            <v-toolbar-title>{{ computedTitle }}</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn @click="handleClose" class="ms-5">
+                <v-icon icon="mdi-check"></v-icon>
+                <span class="d-none d-md-inline ms-1">Save</span>
+            </v-btn>
+            <v-btn @click="handleClose" class="ms-5" icon="mdi-close"></v-btn>            
+        </v-toolbar>
+        <v-row class="mt-0">        
+            <v-col cols="12" md="3">
+                <v-sheet
+                    class="pa-4 text-center"
+                    color="grey-lighten-4"                    
                 >
-                </v-autocomplete>
-            </v-col>
-        </v-row>
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Password</v-list-subheader>
-            </v-col>
+                    <Avatar :label="oldData?.name" :size="80" />
 
-            <v-col cols="12" md="8">
-                <v-text-field            
-                    density="compact"        
-                    label="Password"
-                    v-model="props.data.password"     
-                    :append-inner-icon="password_visible ? 'mdi-eye-off' : 'mdi-eye'"
-                    :type="password_visible ? 'text' : 'password'"    
-                    @click:append-inner="password_visible = !password_visible" 
-                    :hint="computedHint"
-                    hide-details="auto"
-                    :error-messages="handleError('password')"
-                ></v-text-field>
+                    <div v-if="oldData" class="mt-4">{{ oldData?.name }}</div>
+                    <v-chip v-if="oldData?.status" :color="oldData?.status.color">
+                        {{ oldData?.status.label }}
+                    </v-chip>
+                </v-sheet>
+
+                <v-divider></v-divider>
+
+                <v-list>
+                    <v-list-item                    
+                    v-for="[icon, text] in links"
+                        :key="icon"
+                        :prepend-icon="icon"
+                        :title="text"
+                        link
+                    ></v-list-item>
+                </v-list>
+            </v-col>
+            <v-col cols="12" md="9" class="pa-8 pb-10 pe-8">    
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Name</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-text-field
+                            variant="underlined"
+                            autofocus                            
+                            label="Name"
+                            v-model="data.name"
+                            hide-details="auto"
+                            :error-messages="handleError('name')"
+                        ></v-text-field>
+                    </v-col>
+                </v-row>
+
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Username</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-text-field
+                            variant="underlined"                            
+                            label="Username"
+                            v-model="data.username"     
+                            hide-details="auto"
+                            :error-messages="handleError('username')"
+                        ></v-text-field>
+                    </v-col>
+                </v-row>
+
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Email</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-text-field
+                            variant="underlined"                            
+                            type="email"
+                            label="Email address"
+                            v-model="data.email" 
+                            hide-details="auto"         
+                            :error-messages="handleError('email')"
+                        ></v-text-field>
+                    </v-col>
+                </v-row>
+
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Company</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-autocomplete
+                            variant="underlined"
+                            
+                            label="Company"
+                            :items="companies"
+                            v-model="data.companies"
+                            item-title="name"
+                            item-value="id"
+                            multiple
+                            chips
+                            return-object
+                            hide-details="auto"
+                            :error-messages="handleError('companies')"
+                        ></v-autocomplete>
+                    </v-col>
+                </v-row>
+
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Roles</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-autocomplete
+                            variant="underlined"                            
+                            label="Roles"
+                            :items="roles"
+                            v-model="data.roles"
+                            item-title="name"
+                            item-value="id"
+                            multiple
+                            return-object
+                            chips
+                            hide-details="auto"
+                        ></v-autocomplete>
+                    </v-col>
+                </v-row>
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Status</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-autocomplete
+                            variant="underlined"                            
+                            label="Status"
+                            :items="statuses"
+                            item-title="label"
+                            item-value="id"
+                            v-model="data.status" 
+                            hide-details="auto"                 
+                            :error-messages="handleError('status_id')"  
+                            return-object
+                        >
+                        </v-autocomplete>
+                    </v-col>
+                </v-row>
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Password</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-text-field            
+                            variant="underlined"                               
+                            label="Password"
+                            v-model="data.password"     
+                            :append-inner-icon="password_visible ? 'mdi-eye-off' : 'mdi-eye'"
+                            :type="password_visible ? 'text' : 'password'"    
+                            @click:append-inner="password_visible = !password_visible" 
+                            :hint="computedHint"
+                            hide-details="auto"
+                            :error-messages="handleError('password')"
+                        ></v-text-field>
+                    </v-col>
+                </v-row>
             </v-col>
         </v-row>
-    </ModalForm>
+    </v-card>
 </template>
 
 <script setup>
@@ -151,27 +189,44 @@
     const statuses = ref([])
     const errors = ref(null)
     const loading = ref(false)
+    const data = ref({
+            name: '',
+            email: '',
+            username: '',
+            roles: [],
+            companies: [],
+            status: null,
+            password: ''
+    })
+
     const props = defineProps({
-        data: {
-            type: Object,
+        dataId: {
+            type: Number,
             default: null
         }
     })
+    let oldData = null
+
+    const links = [
+        ['mdi-account', 'User Information'],
+        ['mdi-domain', 'Companies'],
+        ['mdi-view-column', 'Custom Fields']
+    ]
     
     const emits = defineEmits(['success', 'error', 'close'])        
 
     const handleSubmit = async () => {
-        if (props.data){
-            let param = props.data.id ? `/${props.data.id}` : ''        
+        if (data){
+            let param = data.id ? `/${data.id}` : ''        
             loading.value = true        
             errors.value = null
             let submit = {
-                ...props.data,
-                roles: props.data.roles.map(item => {
+                ...data,
+                roles: data.roles.map(item => {
                     return item.name
                 }),
-                companies: props.data.companies?.map(item => item.id),
-                status_id: props.data.status?.id
+                companies: data.companies?.map(item => item.id),
+                status_id: data.status?.id
             }
             try {
                 const response = await $fetchApi(`/admin/users${param}`, {
@@ -191,12 +246,20 @@
     }
 
     const handleClose = () => {
-        emits('close')
+        const check = Object.keys(data).every(item => {
+            return (data[item] == oldData.value[item])
+        })
+        if (!check){
+            alert("Save?")
+        }
+        else {
+            emits('close')
+        }
     }
 
     const computedTitle = computed(() => {
-        if (props.data){
-            if (!props.data.id){
+        if (data){
+            if (!data.id){
                 return "Add User"
             }
             else {
@@ -206,6 +269,12 @@
     })
 
     onMounted(async () => {    
+        
+        if (props.dataId){
+            const responseData = await $fetchApi(`/admin/users/${props.dataId}`)
+            data.value = responseData
+        }
+
         const responseStatus = await $fetchApi('/admin/statuses', {
             params: {
                 limit: -1
@@ -233,7 +302,8 @@
                 sort: 'name'
             }
         })
-        companies.value = responseCompanies
+        companies.value = responseCompanies        
+        oldData = data.value
     })
 
     const handleError = field => {
@@ -247,7 +317,7 @@
     }
 
     const computedHint = computed(() => {
-        if (props.data.id){
+        if (data.id){
             return 'Keep this empty if you do not want to change the password'
         }
         return ''

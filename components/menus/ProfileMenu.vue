@@ -2,11 +2,7 @@
     <v-menu>
         <template v-slot:activator="{ props }">
           <v-btn icon v-bind="props">
-            <v-avatar
-              color="brown"              
-            >
-              <span class="text-h6">{{ user.initials }}</span>
-            </v-avatar>
+            <Avatar :size="40" />
           </v-btn>
         </template>
         <v-card>
