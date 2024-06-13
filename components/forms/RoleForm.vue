@@ -1,106 +1,142 @@
 <template>
-    <ModalForm 
-        :title="computedTitle" 
-        :visible="props.data != null"        
+    <v-card     
+        :visible="data != null"        
         :loading="loading"
         @submit="handleSubmit"
-        @close="handleClose"
-        :width="1024"             
-    >    
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Name</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-text-field
-                    autofocus
-                    density="compact"
-                    label="Name"
-                    v-model="props.data.name"
-                    hide-details="auto"
-                    :error-messages="handleError('name')"
-                ></v-text-field>                
-            </v-col>
-        </v-row>
-
-        <v-row dense no-gutters>
-            <v-col cols="12" md="4">
-                <v-list-subheader>Status</v-list-subheader>
-            </v-col>
-
-            <v-col cols="12" md="8">
-                <v-autocomplete
-                    density="compact"
-                    label="Status"
-                    :items="statuses"
-                    item-title="label"
-                    item-value="id"
-                    v-model="props.data.status" 
-                    hide-details="auto"                 
-                    :error-messages="handleError('status_id')"  
-                    return-object
+        class="rounded-lg text-body-1"
+        :disabled="loading"
+    >            
+        <v-toolbar dense>               
+            <v-toolbar-title>{{ computedTitle }}</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn @click="handleClose" class="ms-5">
+                <v-icon icon="mdi-check"></v-icon>
+                <span class="d-none d-md-inline ms-1">Save</span>
+            </v-btn>
+            <v-btn @click="handleClose" class="ms-5" icon="mdi-close"></v-btn>            
+        </v-toolbar>
+        <v-row class="mt-0">        
+            <v-col cols="12" md="3">
+                <v-sheet
+                    class="pa-4 text-center"
+                    color="grey-lighten-4"                    
                 >
-                </v-autocomplete>
-            </v-col>
-        </v-row>
+                    <Avatar v-bind="computedAvatar" :size="80" />
 
-        <v-row dense no-gutters class="pb-0">
-            <v-col cols="12" class="pb-0">
-                <v-data-table class="mt-4"
-                    :headers="headers"
-                    :items="permissions"
-                    :search="search"
-                    :items-per-page="-1"
-                    show-select
-                    density="compact"
-                    height="350px"                           
-                    sticky             
-                >
-                    <template v-slot:bottom></template>
-                    <template v-slot:top>
+                    <div v-if="data.name" class="mt-4">{{ data.name }}</div>
+                    <v-chip v-if="data.status" :color="data.status.color">
+                        {{ data.status.label }}
+                    </v-chip>
+                </v-sheet>
+
+                <v-divider></v-divider>
+
+                <v-list>
+                    <v-list-item                    
+                    v-for="[icon, text] in links"
+                        :key="icon"
+                        :prepend-icon="icon"
+                        :title="text"
+                        link
+                    ></v-list-item>
+                </v-list>
+            </v-col>
+            <v-col cols="12" md="9" class="pa-8 pb-10 pe-8">    
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Name</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
                         <v-text-field
-                            class="pb-2"
-                            v-model="search"
-                            placeholder="Search"
-                            clearable
-                            prepend-inner-icon="mdi-magnify"
-                            single-line
-                            variant="outlined"
-                            hide-details
-                        ></v-text-field>
-                    </template>
-                    <template #item="{ item, isSelected, toggleSelect }">
-                        <tr v-if="item.selectable.header">
-                            <td class="bg-grey-lighten-3">
-                                <v-checkbox hide-details density="compact" @update:modelValue="val => permissionHeaderClick(val, item.selectable.name)" v-model="item.raw.checked"/>
-                            </td>
-                            <td class="bg-grey-lighten-3">{{  item.selectable.name }}</td>
-                        </tr>
-                        <tr v-else>
-                            <td></td>
-                            <td>
-                                <v-checkbox density="compact" @update:modelValue="ev => updateItem(item.raw)" :label="item.selectable.name" hide-details v-model="item.raw.checked">
-                                    <template #label="{ label }">
-                                        <span class="px-2">{{ label }}</span>
-                                    </template>
-                                </v-checkbox>
-                            </td>
-                        </tr>
-                    </template>
-                    <template #headers="{ columns }">
-                        <tr>
-                            <td width="5%">
-                                <v-checkbox v-model="checkAll" @update:modelValue="handleCheckAll" hide-details density="compact" />
-                            </td>
-                            <td>Permissions</td>
-                        </tr>
-                    </template>
-                </v-data-table>
+                            autofocus
+                            variant="underlined"
+                            label="Name"
+                            v-model="data.name"
+                            hide-details="auto"
+                            :error-messages="handleError('name')"
+                        ></v-text-field>                
+                    </v-col>
+                </v-row>
+
+                <v-row dense no-gutters>
+                    <v-col cols="12" md="4">
+                        <v-list-subheader>Status</v-list-subheader>
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                        <v-autocomplete
+                            variant="underlined"
+                            label="Status"
+                            :items="statuses"
+                            item-title="label"
+                            item-value="id"
+                            v-model="data.status" 
+                            hide-details="auto"                 
+                            :error-messages="handleError('status_id')"  
+                            return-object
+                        >
+                        </v-autocomplete>
+                    </v-col>
+                </v-row>
+
+                <v-row dense no-gutters class="pb-0">
+                    <v-col cols="12" class="pb-0">
+                        <v-data-table class="mt-4"
+                            :headers="headers"
+                            :items="permissions"
+                            :search="search"
+                            :items-per-page="-1"
+                            show-select
+                            density="compact"
+                            height="350px"                           
+                            sticky             
+                        >
+                            <template v-slot:bottom></template>
+                            <template v-slot:top>
+                                <v-text-field
+                                    class="pb-2"
+                                    v-model="search"
+                                    placeholder="Search"
+                                    clearable
+                                    prepend-inner-icon="mdi-magnify"
+                                    single-line
+                                    variant="outlined"
+                                    hide-details
+                                ></v-text-field>
+                            </template>
+                            <template #item="{ item, isSelected, toggleSelect }">
+                                <tr v-if="item.selectable.header">
+                                    <td class="bg-grey-lighten-3">
+                                        <v-checkbox hide-details density="compact" @update:modelValue="val => permissionHeaderClick(val, item.selectable.name)" v-model="item.raw.checked"/>
+                                    </td>
+                                    <td class="bg-grey-lighten-3">{{  item.selectable.name }}</td>
+                                </tr>
+                                <tr v-else>
+                                    <td></td>
+                                    <td>
+                                        <v-checkbox density="compact" @update:modelValue="ev => updateItem(item.raw)" :label="item.selectable.name" hide-details v-model="item.raw.checked">
+                                            <template #label="{ label }">
+                                                <span class="px-2">{{ label }}</span>
+                                            </template>
+                                        </v-checkbox>
+                                    </td>
+                                </tr>
+                            </template>
+                            <template #headers="{ columns }">
+                                <tr>
+                                    <td width="5%">
+                                        <v-checkbox v-model="checkAll" @update:modelValue="handleCheckAll" hide-details density="compact" />
+                                    </td>
+                                    <td>Permissions</td>
+                                </tr>
+                            </template>
+                        </v-data-table>
+                    </v-col>
+                </v-row>
             </v-col>
         </v-row>
-        
-    </ModalForm>
+    </v-card>
 </template>
 
 <script setup>
@@ -114,8 +150,7 @@
     const loading = ref(false)
     const search = ref('')
     const props = defineProps({
-        data: {
-            type: Object,
+        dataId: {
             default: null
         }
     })
@@ -127,14 +162,21 @@
         { key: 'name', title: 'Permissions' }
     ]
 
+    const data = ref({
+        id: '',
+        name: '',            
+        status: null,
+        permissions: []
+    })
+
     const handleSubmit = async () => {
-        if (props.data){
-            let param = props.data.id ? `/${props.data.id}` : ''        
+        if (data.value){
+            let param = data.value.id ? `/${data.value.id}` : ''        
             loading.value = true        
             errors.value = null
             let submit = {
-                ...props.data,
-                status_id: props.data.status?.id,
+                ...data.value,
+                status_id: data.value.status?.id,
                 company_id: activeCompany.company.id,
                 permissions: permissions.value.filter(item => !item.header && item.checked)
                                               .map(item => item.name)
@@ -161,8 +203,8 @@
     }
 
     const computedTitle = computed(() => {
-        if (props.data){
-            if (!props.data.id){
+        if (data.value){
+            if (!data.value.id){
                 return "Add Role"
             }
             else {
@@ -171,7 +213,16 @@
         }
     })
 
+    const links = [
+        ['mdi-account-card', 'Role Information'],
+        ['mdi-account', 'Users']
+    ]
+
     onMounted(async () => {    
+        if (props.dataId){
+            const responseRole = await $fetchApi(`/admin/roles/${props.dataId}`)
+            data.value = responseRole
+        }
         const responseStatus = await $fetchApi('/admin/statuses', {
             params: {
                 limit: -1
@@ -200,8 +251,8 @@
                     list.push({
                         header: true,
                         name: split[0],
-                        checked: props.data.id ? 
-                                    responsePermissions.filter(i => i.name.startsWith(split[0] +".")).length == props.data.permissions.filter(i => i.name.startsWith(split[0] + ".")).length : false
+                        checked: data.value.id ? 
+                                    responsePermissions.filter(i => i.name.startsWith(split[0] +".")).length == data.value.permissions.filter(i => i.startsWith(split[0] + ".")).length : false
                     })
                 }
             }
@@ -209,13 +260,13 @@
                 list.push({
                     header: true,
                     name: split[0],
-                    checked: props.data.id ? 
-                                responsePermissions.filter(i => i.name.startsWith(split[0] +".")).length == props.data.permissions.filter(i => i.name.startsWith(split[0] + ".")).length : false
+                    checked: data.value.id ? 
+                                responsePermissions.filter(i => i.name.startsWith(split[0] +".")).length == data.value.permissions.filter(i => i.startsWith(split[0] + ".")).length : false
                 })
             }
             list.push({
                 ...item,
-                checked: props.data.permissions.findIndex(i => i.name == item.name) > -1
+                checked: data.value.permissions.findIndex(i => i == item.name) > -1
             })            
             return list
         }, [])        
@@ -257,6 +308,14 @@
             }
         }
     }
+
+    const computedAvatar = computed(() => {
+        if (data.value.name){
+            let names = data.value.name.split("_")
+            return { label: names[0].substr(0,1) + (names.length > 1 ? names[1].substr(0,1) : '') }
+        }
+        return { label: "R" }
+    })
 
     const handleCheckAll = value => {
         permissions.value.forEach((item, index) => {

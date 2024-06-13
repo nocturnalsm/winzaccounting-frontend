@@ -3,18 +3,30 @@
         color="brown"      
         :size="props.size"        
     >
-        <v-img v-if="user.google?.avatar" :src="user.google.avatar"></v-img>
-        <span v-else class="text-h6">{{ user.avatar }}</span>
+        <v-img v-if="props.image" :src="props.image"></v-img>
+        <v-icon v-else-if="props.icon">{{ props.icon }}</v-icon>
+        <span v-else class="text-h6">{{ props.label }}</span>
     </v-avatar>
 </template>
 
 <script setup>
     
-    const { user } = useAuth()
     const props = defineProps({
         size: {
             default: 32,
             type: Number
+        },
+        label: {
+            type: String,
+            required: false
+        },
+        image: {
+            type: String,
+            required: false
+        },
+        icon: {
+            type: String,
+            required: false
         }
     })
 

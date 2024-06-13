@@ -2,7 +2,7 @@
     <v-menu>
         <template v-slot:activator="{ props }">
           <v-btn icon v-bind="props">
-            <Avatar :size="40" />
+            <Avatar v-bind="computedProps" :size="40" />
           </v-btn>
         </template>
         <v-card>
@@ -35,4 +35,21 @@
     const handleLogout = () => {
         $sanctumAuth.logout()
     }
+
+    const computedProps = computed(() => {
+        if (user.avatar){
+          if (user.avatar?.startsWith('http')){
+              return {
+                  image: user.avatar
+              }
+          }
+          if (user.avatar?.startsWith('mdi-')){
+              return {
+                  icon: user.avatar
+              }
+          }
+          return { label: user.avatar }
+        }
+        return null
+    })
 </script>

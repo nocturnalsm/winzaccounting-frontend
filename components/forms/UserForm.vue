@@ -21,11 +21,11 @@
                     class="pa-4 text-center"
                     color="grey-lighten-4"                    
                 >
-                    <Avatar :label="oldData?.name" :size="80" />
+                    <Avatar v-bind="computedAvatar" :size="80" />
 
-                    <div v-if="oldData" class="mt-4">{{ oldData?.name }}</div>
-                    <v-chip v-if="oldData?.status" :color="oldData?.status.color">
-                        {{ oldData?.status.label }}
+                    <div v-if="data.name" class="mt-4">{{ data.name }}</div>
+                    <v-chip v-if="data.status" :color="data.status.color">
+                        {{ data.status.label }}
                     </v-chip>
                 </v-sheet>
 
@@ -42,7 +42,7 @@
                 </v-list>
             </v-col>
             <v-col cols="12" md="9" class="pa-8 pb-10 pe-8">    
-                <v-row dense no-gutters>
+                <v-row dense no-gutters class="align-center">
                     <v-col cols="12" md="4">
                         <v-list-subheader>Name</v-list-subheader>
                     </v-col>
@@ -59,7 +59,7 @@
                     </v-col>
                 </v-row>
 
-                <v-row dense no-gutters>
+                <v-row dense no-gutters class="align-center">
                     <v-col cols="12" md="4">
                         <v-list-subheader>Username</v-list-subheader>
                     </v-col>
@@ -75,7 +75,7 @@
                     </v-col>
                 </v-row>
 
-                <v-row dense no-gutters>
+                <v-row dense no-gutters class="align-center">
                     <v-col cols="12" md="4">
                         <v-list-subheader>Email</v-list-subheader>
                     </v-col>
@@ -92,7 +92,7 @@
                     </v-col>
                 </v-row>
 
-                <v-row dense no-gutters>
+                <v-row dense no-gutters class="align-center">
                     <v-col cols="12" md="4">
                         <v-list-subheader>Company</v-list-subheader>
                     </v-col>
@@ -115,7 +115,7 @@
                     </v-col>
                 </v-row>
 
-                <v-row dense no-gutters>
+                <v-row dense no-gutters class="align-center">
                     <v-col cols="12" md="4">
                         <v-list-subheader>Roles</v-list-subheader>
                     </v-col>
@@ -135,7 +135,7 @@
                         ></v-autocomplete>
                     </v-col>
                 </v-row>
-                <v-row dense no-gutters>
+                <v-row dense no-gutters class="align-center">
                     <v-col cols="12" md="4">
                         <v-list-subheader>Status</v-list-subheader>
                     </v-col>
@@ -155,7 +155,7 @@
                         </v-autocomplete>
                     </v-col>
                 </v-row>
-                <v-row dense no-gutters>
+                <v-row dense no-gutters class="align-center">
                     <v-col cols="12" md="4">
                         <v-list-subheader>Password</v-list-subheader>
                     </v-col>
@@ -196,20 +196,19 @@
             roles: [],
             companies: [],
             status: null,
-            password: ''
+            password: '',
+            avatar: ''
     })
 
     const props = defineProps({
         dataId: {
-            type: Number,
             default: null
         }
     })
-    let oldData = null
+    const oldData = ref(null)
 
     const links = [
         ['mdi-account', 'User Information'],
-        ['mdi-domain', 'Companies'],
         ['mdi-view-column', 'Custom Fields']
     ]
     
@@ -257,9 +256,27 @@
         }
     }
 
+    const computedAvatar = computed(() => {
+        let value = { label: "U" }
+        if (data.value.avatar){
+            if (data.value.avatar.startsWith('http')){
+                value = {
+                    image: data.avatar
+                }
+            }
+            if (data.value.avatar.startsWith('mdi-')){
+                value = {
+                    icon: data.avatar
+                }
+            }
+            value = { label: data.value.avatar }
+        }
+        return value
+    })
+
     const computedTitle = computed(() => {
-        if (data){
-            if (!data.id){
+        if (data.value){
+            if (!data.value.id){
                 return "Add User"
             }
             else {
@@ -303,7 +320,7 @@
             }
         })
         companies.value = responseCompanies        
-        oldData = data.value
+        oldData.value = { ...data.value }
     })
 
     const handleError = field => {

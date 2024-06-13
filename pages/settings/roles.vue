@@ -2,13 +2,13 @@
     <v-row>
         <v-col cols="12">
             <RoleForm 
-                v-if="edited"
+                v-if="edited != null"
                 @success="handleSuccess" 
                 @error="handleError" 
                 @close="edited = null" 
-                :data="edited" 
+                :data-id="edited" 
             />
-            <v-card class="rounded-lg text-body-1">
+            <v-card v-else class="rounded-lg text-body-1">
                 <DataTable 
                     :totalData="totalRecords"
                     :loading="loading"         
@@ -97,8 +97,7 @@
     }
 
     const handleEdit = data => {
-        const { id, name, status, permissions } = data
-        edited.value = { id, name, status, permissions }
+        edited.value = data.id
     }
 
     const actionButtons = {
@@ -132,11 +131,7 @@
     }
     
     const handleAdd = () => {
-        edited.value = {
-            name: '',            
-            status: null,
-            permissions: []
-        }
+        edited.value = ''
     }
 
     const handleSuccess = data => {      
