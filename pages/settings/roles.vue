@@ -14,6 +14,7 @@
                     :loading="loading"         
                     :data="roles"
                     :headers="headers"
+                    :filters="filters"
                     :actionButtons="actionButtons"
                     title="Roles"
                     class="font-roboto text-body-1"
@@ -22,6 +23,7 @@
                     @edit-click="handleEdit"         
                     @delete-click="handleDelete"  
                     @search="handleSearch"
+                    @filter="handleFilter"
                 >                    
                     <template #item.permissions="{ item }">
                         <v-chip class="mr-2" color="primary" v-for="i in item.permissions.length > 3 ? 3 : item.permissions.length">
@@ -66,7 +68,9 @@
         {
             title: 'Permissions',
             key: "permissions",
-            sortable: false
+            sortable: false,
+            searchable: false,
+            filterable: true
         },
         {
             title: 'Users Count',
@@ -76,7 +80,9 @@
         },
         {
             title: 'Status',
-            key: 'status',            
+            key: 'status',         
+            filterable: true,
+            searchable: false
         }
     ])
 
@@ -119,13 +125,9 @@
         }
     }
 
-    const handleSearch = search => {
+    const handleSearch = search => {        
         let params = { 
-            filter: search ? {
-                name: search,
-                permissions: search
-            }
-            : null
+            q: search ?? null
         }
         fetchData(params)
     }
@@ -167,5 +169,56 @@
                 state: 'error'
             })
         }
+    }
+
+    const filters = ref({
+        permissions: {
+            options: [],
+            placeholder: "All Permissions",
+            label: "name",
+            multiple: true,
+            value: "id",            
+        },
+        status: {
+            options: [],
+            placeholder: "All Status",
+            label: "label",
+            value: "id",            
+        }
+    })
+
+    onMounted(async () => {
+        const responseStatus = await $fetchApi("/admin/statuses", { 
+            params: { limit: - 1, sort: 'label' }
+        })
+        filters.value.status.options = responseStatus
+
+        const responsePermissions = await $fetchApi("/admin/permissions", { 
+            params: { limit: - 1, sort: 'name' }
+        })
+        filters.value.permissions.options = responsePermissions
+    })
+
+    const handleFilter = ({ value, key }) => {        
+        let { filter } = fetchParams.value
+        let newFilter = filter ? { filter } : {}       
+        let params = null
+        if (value){ 
+            if (key == 'permissions'){                
+                params = {
+                    filter: { ...newFilter.filter, [key]: value.map(i => i.value) }
+                }
+            }
+            else {
+                params = {
+                    filter: { ...newFilter.filter, [key]: value.value }
+                }
+            }
+        }        
+        else {
+            delete newFilter.filter[key]
+            params = { filter: newFilter.filter }
+        }
+        fetchData(params)
     }
 </script>

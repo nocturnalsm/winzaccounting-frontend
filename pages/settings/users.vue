@@ -15,6 +15,7 @@
                     :data="users"
                     :headers="headers"
                     :actionButtons="actionButtons"
+                    :filters="filters"
                     title="Users"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
@@ -22,6 +23,7 @@
                     @edit-click="handleEdit"         
                     @delete-click="handleDelete"           
                     @search="handleSearch"
+                    @filter="handleFilter"
                 >
                     <template #item.roles="{ item }">
                         <v-chip color="primary" v-for="role in item.roles">
@@ -52,7 +54,7 @@
     const loading = ref(false)
     const totalRecords = ref(0)
     const fetchParams = ref(null)
-    const edited = ref(null)
+    const edited = ref(null)    
     const { user } = useAuth()
 
     const headers = ref([
@@ -71,11 +73,15 @@
         {
             title: 'Roles',
             key: 'roles',
-            sortable: false
+            sortable: false,
+            searchable: false,
+            filterable: true
         },
         {
             title: 'Status',
-            key: 'status',            
+            key: 'status',  
+            searchable: false,
+            filterable: true          
         }
     ])
 
@@ -125,14 +131,7 @@
 
     const handleSearch = search => {        
         let params = { 
-            filter: search ? {                
-                name: search,
-                username: search,
-                email: search,
-                roles: search,
-                status: search
-            } 
-            : null
+            q: search ?? null
         }
         fetchData(params)
     }
@@ -174,5 +173,48 @@
                 state: 'error'
             })
         }
+    }
+
+    const filters = ref({
+        status: {
+            options: [],
+            placeholder: "All Status",
+            label: "label",
+            value: "id",            
+        },
+        roles: {
+            options: [],
+            placeholder: "All Roles",
+            label: "name",
+            value: "id"
+        }
+    })
+
+    onMounted(async () => {
+        const responseStatus = await $fetchApi("/admin/statuses", { 
+            params: { limit: - 1, sort: 'label' }
+        })
+        filters.value.status.options = responseStatus
+        
+        const responseRoles = await $fetchApi("/admin/roles", { 
+            params: { limit: - 1 }
+        })
+        filters.value.roles.options = responseRoles
+    })
+
+    const handleFilter = ({ value, key }) => {        
+        let { filter } = fetchParams.value
+        let newFilter = filter ? { filter } : {}       
+        let params = null
+        if (value){             
+            params = {
+                filter: { ...newFilter.filter, [key]: value.value }
+            }
+        }
+        else {
+            delete newFilter.filter[key]
+            params = { filter: newFilter.filter }
+        }
+        fetchData(params)
     }
 </script>

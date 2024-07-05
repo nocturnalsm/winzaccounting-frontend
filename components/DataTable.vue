@@ -29,6 +29,7 @@
             <v-toolbar
                 flat
                 v-if="!noHeader"
+                class="toolbar"
             >
                 <div class="d-flex align-center flex-grow-1">
                     <h1 class="text-h6 pl-4 pr-4 pr-sm-8">{{ title }}</h1>    
@@ -53,8 +54,28 @@
                             <span class="d-none d-md-inline ml-2">Search</span>
                         </v-btn>
                     </form>
-                </div>
-                <v-spacer class="d-none d-sm-inline"></v-spacer>                                
+                    <div class="filters d-flex ga-2 justify-start align-center px-2 w-50">                    
+                        <template v-if="computedFilterable.length > 0">
+                            <template v-for="filterField in computedFilterable">
+                                <slot :name="`filter.${filterField.key}`" :field="filterField">
+                                    <v-select                                    
+                                        :items="filterField.items"
+                                        :placeholder="filterField.placeholder"
+                                        density="compact"
+                                        class="mt-4 mr-2 w-25"
+                                        :multiple="filterField.multiple ?? false"
+                                        :clearable="true"
+                                        return-object
+                                        @update:modelValue="value => handleFilters(value, filterField)"
+                                        @click:clear="ev => handleFilters(null, filterField)"
+                                    >
+                                    </v-select>
+                                </slot>
+                            </template>
+                        </template>                        
+                    </div>
+                </div>                                
+                
                 <div class="actions d-flex mx-sm-2">
                     <template v-for="(action, button) in toolbarButtons">
                         <v-btn                 
@@ -73,9 +94,6 @@
                     </template>
                 </div>
             </v-toolbar>
-            <v-card flat class="px-4 pb-2">
-                <slot name="filters" />
-            </v-card>
         </template>
         <template v-slot:item.actions="{ item }">            
             <template v-if="showActionColumn">
@@ -158,9 +176,13 @@
         deleteConfirmText: {
             type: String,
             default: 'Are you sure want to delete this data ?'
+        },
+        filters: {
+            type: Object,
+            default: {}
         }
     })
-    const emit = defineEmits(['addClick', 'editClick', 'deleteClick', 'getData', 'search'])
+    const emit = defineEmits(['addClick', 'editClick', 'deleteClick', 'getData', 'search', 'filter'])
     const fetchOptions = ref(null)
     const search = ref('')
     const editedItem = ref({})
@@ -253,7 +275,7 @@
     const fields = computed(() => {            
         let headers = props.headers                        
         if (props.showActionColumn !== false){
-            headers = [...headers, { title: 'Actions', key: 'actions', sortable: false, searchable: false }]
+            headers = [...headers, { title: 'Actions', key: 'actions', sortable: false, filterable: false, searchable: false }]
         }        
         return headers
     })
@@ -314,12 +336,39 @@
                       .join(", ")
     })
 
+    const computedFilterable = computed(() => {
+        let filtered = fields.value.filter(item => (item.filterable ?? false))
+        let values = []
+        filtered.forEach(item => {            
+            let newItem = { key: item.key, items: [] }
+            if (props.filters[item.key]){
+                newItem = { ...newItem, ...props.filters[item.key]}
+                newItem.items = props.filters[item.key].options.map(o => {
+                        return {
+                            title: o[props.filters[item.key].label],
+                            value: o[props.filters[item.key].value],
+                        }
+                })
+                values.push(newItem)
+            }            
+        })        
+        return values
+    })
+
     const handleSearch = () => {
         emit('search', search.value)
     }
 
     const clearSearch = () => {
         emit('search', '')
+    }
+
+    const handleFilters = (value, filter) => {
+        console.log(value)
+        emit('filter', {
+            value: value,
+            key: filter.key
+        })
     }
 
 </script>

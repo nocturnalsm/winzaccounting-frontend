@@ -15,6 +15,7 @@
                     :data="permissions"
                     :headers="headers"
                     :actionButtons="actionButtons"
+                    :filters="filters"
                     title="Permissions"
                     class="font-roboto text-body-1"
                     @get-data="fetchData"
@@ -22,6 +23,7 @@
                     @edit-click="handleEdit"         
                     @delete-click="handleDelete"  
                     @search="handleSearch"
+                    @filter="handleFilter"
                 >                    
                     <template #item.permissions="{ item }">
                         <v-chip class="mr-2" color="primary" v-for="permission in item.permissions">
@@ -62,7 +64,9 @@
         },
         {
             title: 'Status',
-            key: 'status',            
+            key: 'status',           
+            searchable: false,
+            filterable: true 
         }
     ])
 
@@ -100,12 +104,9 @@
         }
     }
 
-    const handleSearch = search => {
+    const handleSearch = search => {        
         let params = { 
-            filter: search ? {
-                name: search
-            }
-            : null
+            q: search ?? null
         }
         fetchData(params)
     }
@@ -150,5 +151,37 @@
                 state: 'error'
             })
         }
+    }
+
+    const filters = ref({
+        status: {
+            options: [],
+            placeholder: "All Status",
+            label: "label",
+            value: "id",            
+        }
+    })
+
+    onMounted(async () => {
+        const responseStatus = await $fetchApi("/admin/statuses", { 
+            params: { limit: - 1, sort: 'label' }
+        })
+        filters.value.status.options = responseStatus
+    })
+
+    const handleFilter = ({ value, key }) => {        
+        let { filter } = fetchParams.value
+        let newFilter = filter ? { filter } : {}       
+        let params = null
+        if (value){ 
+            params = {
+                filter: { ...newFilter.filter, [key]: value.value }
+            }
+        }
+        else {
+            delete newFilter.filter[key]
+            params = { filter: newFilter.filter }
+        }
+        fetchData(params)
     }
 </script>
