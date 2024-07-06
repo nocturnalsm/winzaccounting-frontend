@@ -1,61 +1,43 @@
-<template>      
-    <v-row>
-        <v-col cols="12">
-            <UserForm 
-                v-if="edited != null"
-                @success="handleSuccess" 
-                @error="handleError" 
-                @close="edited = null" 
-                :data-id="edited" 
-            />
-            <v-card v-else class="rounded-lg text-body-1">
-                <DataTable 
-                    :totalData="totalRecords"
-                    :loading="loading"         
-                    :data="users"
-                    :headers="headers"
-                    :actionButtons="actionButtons"
-                    :filters="filters"
-                    title="Users"
-                    class="font-roboto text-body-1"
-                    @get-data="fetchData"
-                    @add-click="handleAdd"
-                    @edit-click="handleEdit"         
-                    @delete-click="handleDelete"           
-                    @search="handleSearch"
-                    @filter="handleFilter"
-                >
-                    <template #item.roles="{ item }">
-                        <v-chip color="primary" v-for="role in item.roles">
-                            {{ role.name }}
-                        </v-chip>
-                    </template>
-                    <template #item.status="{ item }">
-                        <v-chip :color="item.status.color">
-                            {{ item.status.label }}
-                        </v-chip>
-                    </template>
-                </DataTable>
-            </v-card>
-        </v-col>
-    </v-row>
+<template>          
+    <IndexPage 
+        :total-records="totalRecords"
+        :loading="loading"         
+        :data="users"
+        :headers="headers"
+        :actionButtons="actionButtons"
+        :filters="filters"
+        title="Users"
+        @get-data="fetchData"
+        @add-click="handleAdd"
+        @edit-click="handleEdit"         
+        @delete-click="handleDelete"
+    >        
+        <template #item.roles="{ item }">
+            <v-chip color="primary" v-for="role in item.roles">
+                {{ role.name }}
+            </v-chip>
+        </template>
+        <template #item.status="{ item }">
+            <v-chip :color="item.status.color">
+                {{ item.status.label }}
+            </v-chip>
+        </template>
+    </IndexPage>
 </template>
 
 <script setup>
     
     import { ref } from 'vue'
 
+    const users = ref([])
+    const loading = ref(false)
+    const totalRecords = ref(0)
+    const { user } = useAuth()
+
     definePageMeta({
         middleware: 'auth',
         layout: 'admin'
     })
-    
-    const users = ref([])
-    const loading = ref(false)
-    const totalRecords = ref(0)
-    const fetchParams = ref(null)
-    const edited = ref(null)    
-    const { user } = useAuth()
 
     const headers = ref([
         {
@@ -85,24 +67,18 @@
         }
     ])
 
-    const fetchData = async params => {
-
+    const fetchData = async params => {        
         loading.value = true 
-        const newParams = {
-            ...fetchParams.value,
-            ...params
-        }
         const response = await $fetchApi('/admin/users', {
-            params: newParams
-        })          
+            params: params
+        })                  
         users.value = response.data        
-        totalRecords.value = response.total
-        fetchParams.value = newParams
+        totalRecords.value = response.total        
         loading.value = false       
     }
 
     const handleEdit = data => {        
-        edited.value = data.id
+        
     }   
 
     const actionButtons = {
@@ -129,34 +105,12 @@
         }
     }
 
-    const handleSearch = search => {        
-        let params = { 
-            q: search ?? null
-        }
-        fetchData(params)
-    }
-
     const handleAdd = () => {
-        edited.value = ''
-    }
-
-    const handleSuccess = data => {      
-        $toast({
-            message: 'Record saved',
-            state: 'success'
-        })
-        fetchData()
-        edited.value = null
-    }
-
-    const handleError = error => {            
-        $toast({
-            message: 'Error occured on saving. Please try again',
-            state: 'error'
-        })
+        //edited.value = ''
     }
 
     const handleDelete = async user => {
+        loading.value = true
         try {
             const response = await $fetchApi(`/admin/users/${user.id}`, {
                 method: "DELETE"
@@ -201,20 +155,5 @@
         })
         filters.value.roles.options = responseRoles
     })
-
-    const handleFilter = ({ value, key }) => {        
-        let { filter } = fetchParams.value
-        let newFilter = filter ? { filter } : {}       
-        let params = null
-        if (value){             
-            params = {
-                filter: { ...newFilter.filter, [key]: value.value }
-            }
-        }
-        else {
-            delete newFilter.filter[key]
-            params = { filter: newFilter.filter }
-        }
-        fetchData(params)
-    }
+   
 </script>

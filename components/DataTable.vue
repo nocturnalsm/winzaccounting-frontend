@@ -4,7 +4,7 @@
         :items="data"
         :items-length="totalData"
         :loading="loading"
-        class="elevation-1"
+        class="elevation-1 text-body-2"
         :footer-props="footerProps"
         :items-per-page="10"
         v-bind="$attrs"       
@@ -376,5 +376,9 @@
 <style scoped>
     form.search {
         max-width: 500px;
+    }
+    .filters :deep(.v-select.v-select--multiple .v-field__input) {
+        flex-wrap: nowrap;
+        overflow: hidden;
     }
 </style>
