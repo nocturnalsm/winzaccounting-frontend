@@ -1,17 +1,12 @@
-<template>          
+<template>      
     <IndexPage 
-        :total-records="totalRecords"
-        :loading="loading"         
-        :data="users"
+        :get-data="fetchData"    
         :headers="headers"
-        :actionButtons="actionButtons"
-        :filters="filters"
         title="Users"
-        @get-data="fetchData"
-        @add-click="handleAdd"
-        @edit-click="handleEdit"         
-        @delete-click="handleDelete"
-    >        
+        :filters="filters"
+        :action-buttons="actionButtons"
+        :loading="loading"
+    >
         <template #item.roles="{ item }">
             <v-chip color="primary" v-for="role in item.roles">
                 {{ role.name }}
@@ -29,15 +24,15 @@
     
     import { ref } from 'vue'
 
-    const users = ref([])
-    const loading = ref(false)
-    const totalRecords = ref(0)
-    const { user } = useAuth()
-
     definePageMeta({
         middleware: 'auth',
         layout: 'admin'
     })
+    
+    const loading = ref(false)
+    const fetchParams = ref(null)
+    const edited = ref(null)    
+    const { user } = useAuth()
 
     const headers = ref([
         {
@@ -67,18 +62,17 @@
         }
     ])
 
-    const fetchData = async params => {        
-        loading.value = true 
+    const fetchData = async params => {
+       
         const response = await $fetchApi('/admin/users', {
             params: params
-        })                  
-        users.value = response.data        
-        totalRecords.value = response.total        
-        loading.value = false       
+        })          
+
+        return response
     }
 
     const handleEdit = data => {        
-        
+        edited.value = data.id
     }   
 
     const actionButtons = {
@@ -106,11 +100,10 @@
     }
 
     const handleAdd = () => {
-        //edited.value = ''
+        edited.value = ''
     }
 
     const handleDelete = async user => {
-        loading.value = true
         try {
             const response = await $fetchApi(`/admin/users/${user.id}`, {
                 method: "DELETE"
@@ -155,5 +148,5 @@
         })
         filters.value.roles.options = responseRoles
     })
-   
+
 </script>
