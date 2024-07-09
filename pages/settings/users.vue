@@ -30,8 +30,6 @@
     })
     
     const loading = ref(false)
-    const fetchParams = ref(null)
-    const edited = ref(null)    
     const { user } = useAuth()
 
     const headers = ref([
@@ -72,7 +70,7 @@
     }
 
     const handleEdit = data => {        
-        edited.value = data.id
+        //edited.value = data.id
     }   
 
     const actionButtons = {
@@ -100,7 +98,7 @@
     }
 
     const handleAdd = () => {
-        edited.value = ''
+        //edited.value = ''
     }
 
     const handleDelete = async user => {

@@ -113,9 +113,17 @@
         let { filter } = fetchParams.value
         let newFilter = filter ? { filter } : {}       
         let params = null
+
         if (value){             
-            params = {
-                filter: { ...newFilter.filter, [key]: value.value }
+            if (props.filters[key].multiple ?? false){                
+                params = {
+                    filter: { ...newFilter.filter, [key]: value.map(i => i.value) }
+                }
+            }
+            else {
+                params = {
+                    filter: { ...newFilter.filter, [key]: value.value }
+                }
             }
         }
         else {
