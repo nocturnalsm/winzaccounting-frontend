@@ -29,69 +29,70 @@
             <v-toolbar
                 flat
                 v-if="!noHeader"
-                class="toolbar"
+                class="toolbar"                
             >
                 <div class="d-flex align-center flex-grow-1">
-                    <h1 class="text-h6 pl-4 pr-4 pr-sm-8">{{ title }}</h1>    
-                    <form @submit.prevent="handleSearch" class="search d-inline-flex align-center flex-grow-1">
-                        <v-text-field                                                              
-                            :placeholder="computedSearchPlaceholder" 
-                            variant="underlined"
-                            :loading="loading"
-                            single-line
-                            v-model="search"
-                            class="mr-2"
-                            clearable
-                            @click:clear="clearSearch"
-                        />       
-                        <v-btn 
-                            type="submit" 
-                            class="px-4 d-none d-md-inline" 
-                            color="primary" 
-                            variant="elevated"                        
-                        >
-                            <v-icon>mdi-magnify</v-icon>
-                            <span class="d-none d-md-inline ml-2">Search</span>
-                        </v-btn>
-                    </form>
-                    <div class="filters d-flex ga-2 justify-start align-center px-2 w-50">                    
-                        <template v-if="computedFilterable.length > 0">
-                            <template v-for="filterField in computedFilterable">
-                                <slot :name="`filter.${filterField.key}`" :field="filterField">
-                                    <v-select                                    
-                                        :items="filterField.items"
-                                        :placeholder="filterField.placeholder"
-                                        density="compact"
-                                        class="mt-4 mr-2 w-25"
-                                        :multiple="filterField.multiple ?? false"
-                                        :clearable="true"
-                                        return-object
-                                        @update:modelValue="value => handleFilters(value, filterField)"
-                                        @click:clear="ev => handleFilters(null, filterField)"
-                                    >
-                                    </v-select>
-                                </slot>
-                            </template>
-                        </template>                        
+                    <h1 class="text-h6 pl-4 pr-4 pr-sm-8">{{ title }}</h1>   
+                    <div class="d-flex flex-grow-1"> 
+                        <form @submit.prevent="handleSearch" class="search d-inline-flex align-center flex-grow-1">
+                            <v-text-field                                                              
+                                :placeholder="computedSearchPlaceholder" 
+                                variant="underlined"
+                                :loading="loading"
+                                single-line
+                                v-model="search"
+                                class="mr-2"
+                                clearable
+                                @click:clear="clearSearch"
+                            />       
+                            <v-btn 
+                                type="submit" 
+                                class="px-4 d-none d-md-inline" 
+                                color="primary" 
+                                variant="elevated"                        
+                            >
+                                <v-icon>mdi-magnify</v-icon>
+                                <span class="d-none d-md-inline ml-2">Search</span>
+                            </v-btn>
+                        </form>
+                        <div class="filters d-flex ga-2 justify-start align-center px-2 w-50">                    
+                            <template v-if="computedFilterable.length > 0">
+                                <template v-for="filterField in computedFilterable">
+                                    <slot :name="`filter.${filterField.key}`" :field="filterField">
+                                        <v-select                                    
+                                            :items="filterField.items"
+                                            :placeholder="filterField.placeholder"
+                                            class="mt-2 mr-2 w-25"
+                                            :multiple="filterField.multiple ?? false"
+                                            :clearable="true"
+                                            return-object
+                                            @update:modelValue="value => handleFilters(value, filterField)"
+                                            @click:clear="ev => handleFilters(null, filterField)"
+                                            variant="underlined"
+                                        >
+                                        </v-select>
+                                    </slot>
+                                </template>
+                            </template>                        
+                        </div>
+                    </div>                                                
+                    <div class="actions d-flex ml-auto mr-4">
+                        <template v-for="(action, button) in toolbarButtons">
+                            <v-btn                 
+                                :density="smAndDown ? 'compact' : 'comfortable'"                                                           
+                                v-if="action.show"                         
+                                :disabled="!action.enabled"    
+                                :color="action.color" 
+                                :title="action.hover"
+                                @click="action.click"                                                                                                             
+                                :class="`px-0 px-md-2 order-${action.order}`"
+                                :icon="smAndDown ? action.icon : null"
+                            > 
+                                <v-icon>{{ action.icon }}</v-icon>
+                                <span class="ml-1 d-none d-md-inline">{{ action.title }}</span>
+                            </v-btn>
+                        </template>
                     </div>
-                </div>                                
-                
-                <div class="actions d-flex mx-sm-2">
-                    <template v-for="(action, button) in toolbarButtons">
-                        <v-btn                 
-                            :density="smAndDown ? 'compact' : 'comfortable'"                                                           
-                            v-if="action.show"                         
-                            :disabled="!action.enabled"    
-                            :color="action.color" 
-                            :title="action.hover"
-                            @click="action.click"                                                                                                             
-                            :class="`px-0 px-md-2 order-${action.order}`"
-                            :icon="smAndDown ? action.icon : null"
-                        > 
-                            <v-icon>{{ action.icon }}</v-icon>
-                            <span class="ml-1 d-none d-md-inline">{{ action.title }}</span>
-                        </v-btn>
-                    </template>
                 </div>
             </v-toolbar>
         </template>

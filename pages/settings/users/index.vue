@@ -6,6 +6,8 @@
         :filters="filters"
         :action-buttons="actionButtons"
         :loading="loading"
+        @add-click="handleAdd"
+        @edit-click="handleEdit"
     >
         <template #item.roles="{ item }">
             <v-chip color="primary" v-for="role in item.roles">
@@ -70,7 +72,7 @@
     }
 
     const handleEdit = data => {        
-        //edited.value = data.id
+        useRouter().push({ name: 'settings-users-id', params: { id: data.id } })
     }   
 
     const actionButtons = {
@@ -98,7 +100,7 @@
     }
 
     const handleAdd = () => {
-        //edited.value = ''
+        useRouter().push({ name: 'settings-users-new' })
     }
 
     const handleDelete = async user => {

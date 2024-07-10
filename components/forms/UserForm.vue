@@ -182,6 +182,13 @@
 <script setup>
 
     import { ref, computed, onMounted } from 'vue'
+    
+    const props = defineProps({
+        dataId: {
+            type: [String, Number],
+            required: false
+        }
+    })
 
     const roles = ref([])
     const companies = ref([])
@@ -199,12 +206,7 @@
             password: '',
             avatar: ''
     })
-
-    const props = defineProps({
-        dataId: {
-            default: null
-        }
-    })
+    
     const oldData = ref(null)
 
     const links = [
@@ -245,15 +247,7 @@
     }
 
     const handleClose = () => {
-        const check = Object.keys(data).every(item => {
-            return (data[item] == oldData.value[item])
-        })
-        if (!check){
-            alert("Save?")
-        }
-        else {
-            emits('close')
-        }
+    
     }
 
     const computedAvatar = computed(() => {
@@ -276,21 +270,22 @@
 
     const computedTitle = computed(() => {
         if (data.value){
-            if (!data.value.id){
-                return "Add User"
+            if (data.value.id){
+                return "Edit User"
             }
             else {
-                return "Edit User"
+                return "Add User"
             }
         }
     })
 
-    onMounted(async () => {    
-        
+    watch(() => props.dataId, async value => {
         if (props.dataId){
             const responseData = await $fetchApi(`/admin/users/${props.dataId}`)
             data.value = responseData
         }
+    })
+    onMounted(async () => {                    
 
         const responseStatus = await $fetchApi('/admin/statuses', {
             params: {

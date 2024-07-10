@@ -2,26 +2,28 @@
     <v-row>
         <v-col cols="12">
             <v-card :loading="props.loading" class="rounded-lg text-body-1">
-                <DataTable 
-                    :totalData="totalRecords"
-                    :loading="loadingData"         
-                    :data="data"
-                    :headers="props.headers"
-                    :actionButtons="props.actionButtons"
-                    :filters="props.filters"
-                    :title="props.title"
-                    class="font-roboto text-body-1"
-                    @get-data="fetchData"
-                    @add-click="handleAdd"
-                    @edit-click="handleEdit"         
-                    @delete-click="handleDelete"           
-                    @search="handleSearch"
-                    @filter="handleFilter"
-                >
-                    <template v-for="(slot, index) of getItemSlots($slots)" v-slot:[slot]="{ item }">
-                        <slot :name="slot" :item="item"></slot>
-                    </template>
-                </DataTable>
+                <slot name="table">
+                    <DataTable 
+                        :totalData="totalRecords"
+                        :loading="loadingData"         
+                        :data="data"
+                        :headers="props.headers"
+                        :actionButtons="props.actionButtons"
+                        :filters="props.filters"
+                        :title="props.title"
+                        class="font-roboto text-body-1"
+                        @get-data="fetchData"
+                        @add-click="handleAdd"
+                        @edit-click="handleEdit"         
+                        @delete-click="handleDelete"           
+                        @search="handleSearch"
+                        @filter="handleFilter"
+                    >
+                        <template v-for="(slot, index) of getItemSlots($slots)" v-slot:[slot]="{ item }">
+                            <slot :name="slot" :item="item"></slot>
+                        </template>
+                    </DataTable>
+                </slot>
             </v-card>
         </v-col>
     </v-row>
@@ -35,6 +37,7 @@
     const loadingData = ref(false)
     const totalRecords = ref(0)
     const fetchParams = ref(null)
+    const emits = defineEmits(['add-click', 'edit-click', 'delete-click'])
 
     const props = defineProps({
         loading: {
@@ -76,7 +79,7 @@
     }
 
     const handleEdit = data => {        
-        //edited.value = data.id
+        emits('edit-click', data)
     }       
 
     const handleSearch = search => {        
@@ -87,7 +90,7 @@
     }
 
     const handleAdd = () => {
-        //edited.value = ''
+        emits('add-click')
     }
 
     const handleDelete = async user => {
