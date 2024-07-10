@@ -1,5 +1,5 @@
 <template>
-    <UserForm :data-id="dataId" />    
+    <UserForm title="Edit User" :data-id="dataId" />    
 </template>
 
 <script setup>
@@ -15,7 +15,6 @@
 
     onMounted(() => {
         dataId.value = useRoute().params.id
-        console.log(dataId.value)
     })
 
 </script>

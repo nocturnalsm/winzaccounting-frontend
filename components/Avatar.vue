@@ -1,7 +1,8 @@
 <template>
     <v-avatar
         color="brown"      
-        :size="props.size"        
+        :size="props.size"
+        class="avatar"
     >
         <v-img v-if="props.image" :src="props.image"></v-img>
         <v-icon v-else-if="props.icon">{{ props.icon }}</v-icon>
@@ -31,3 +32,9 @@
     })
 
 </script>
+
+<style scoped>
+    .avatar :deep(.v-icon:before){
+        font-size: xx-large;
+    }
+</style>
