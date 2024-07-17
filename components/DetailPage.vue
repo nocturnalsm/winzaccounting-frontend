@@ -1,8 +1,8 @@
 <template>
   <v-card     
-      :loading="loading"
+      :loading="props.loading"
       class="rounded-lg text-body-1"
-      :disabled="loading"
+      :disabled="props.loading"
   >            
     <v-toolbar dense>  
         <slot name="toolbar">                       
@@ -79,9 +79,7 @@
         }
     })
 
-    const errors = ref(null)
-    const loading = ref(false)
-    
+    const errors = ref(null)      
     
     const handleClose = () => {
         useRouter().back()

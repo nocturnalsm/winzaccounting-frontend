@@ -1,5 +1,8 @@
 <template>
-    <UserForm title="Add User"/>    
+    <UserDetail 
+        title="Add User"
+        @submit.info="handleSubmit"
+    />    
 </template>
 
 <script setup>
@@ -8,5 +11,5 @@
         middleware: 'auth',
         layout: 'admin'
     })
-
+    
 </script>
