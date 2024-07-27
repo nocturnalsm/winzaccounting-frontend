@@ -1,7 +1,6 @@
 <template>
     <UserDetail 
         title="Add User"
-        @submit.info="handleSubmit"
     />    
 </template>
 

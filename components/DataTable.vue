@@ -4,7 +4,7 @@
         :items="data"
         :items-length="totalData"
         :loading="loading"
-        class="elevation-1 text-body-2"
+        class="text-body-2"
         :footer-props="footerProps"
         :items-per-page="10"
         v-bind="$attrs"       
