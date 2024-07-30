@@ -1,58 +1,64 @@
 <template>
-    <v-card     
+    <div     
         :loading="props.loading"
-        class="rounded-lg text-body-1"
+        class="rounded-lg text-body-1 bg-white mt-16"
         :disabled="props.loading"
-    >            
-        <v-toolbar dense>  
-            <slot name="toolbar">                       
-                <v-toolbar-title>{{ computedTitle }}</v-toolbar-title>
-                <v-spacer></v-spacer>           
-                <v-btn @click="handleClose" class="ms-5" icon="mdi-close"></v-btn>                    
-            </slot>
-        </v-toolbar>
+    >                    
         <v-row class="mt-0">        
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="3" class="position-fixed pt-0 pb-0">
                 <slot name="sidepane">
                 <v-sheet
-                    class="pa-4 text-center"
+                    class="pa-4 text-center d-flex d-md-block"
                     color="grey-lighten-4"                    
                 >
                     <Avatar v-if="props.avatar" v-bind="props.avatar" :size="80" />
-
-                        <div v-if="props.name" class="mt-4">{{ props.name }}</div>
-                        <div v-if="props.status" class="d-block mt-2">
+                    <div class="ml-4 ml-md-0 mt-2 text-left text-md-center">
+                        <div v-if="props.name">{{ props.name }}</div>
+                        <div v-if="props.status" class="d-block mt-2 pa-0">
                             <v-chip :color="props.status.color">
                                 {{ props.status.label }}
                             </v-chip>
                         </div>
+                    </div>
                 </v-sheet>
 
                 <v-divider></v-divider>
 
-                <v-list>                
-                    <v-list-item                    
-                    v-for="link in props.links"
-                        :key="link.icon"
-                        :prepend-icon="link.icon"
-                        :title="link.text"
+                <v-list class="d-flex justify-center justify-md-start d-md-block">                
+                    <v-list-item              
+                        v-for="link in props.links"
+                        :key="link.icon"                        
                         @click="ev => scrollTo(link.ref)"
                         link
-                    ></v-list-item>
+                        class="m-md-auto"                        
+                        :title.attr="link.text"
+                    >
+                        <v-icon>{{ link.icon }}</v-icon>
+                        <span class="d-none d-md-inline ml-4">
+                            {{ link.text }}
+                        </span>
+                    </v-list-item>
                 </v-list>
                 </slot>
             </v-col>
-            <v-col cols="12" md="9" class="pb-8 pl-0">    
+            <v-col cols="12" offset-md="3" md="9" class="px-8 pl-md-4 pr-md-8 pt-0 pt-md-4 pb-10 mt-16">                    
+                <v-breadcrumbs :items="breadcrumbs" class="px-0 mx-0 mt-16">
+                    <template v-slot:prepend>
+                        <v-icon icon="mdi-home" class="mr-2"></v-icon>
+                    </template>
+                </v-breadcrumbs>
                 <slot name="main"></slot>
             </v-col>
         </v-row>
-    </v-card>
+    </div>
 </template>
 
 <script setup>
 
     import { ref, computed, onMounted } from 'vue'
-    
+    import { useDisplay } from 'vuetify'
+
+    const { mdAndUp } = useDisplay()
     const props = defineProps({
         dataId: {
             type: [String, Number],
@@ -70,12 +76,16 @@
             type: String,
             required: false
         },
-        status: {
+        status: { 
             type: [Object, Function],
             required: false
         },
         avatar: {
             type: Object,
+            required: false
+        },
+        breadcrumbs: {
+            type: [Array, Function],
             required: false
         }
     })
@@ -85,20 +95,6 @@
     const handleClose = () => {
         useRouter().back()
     }
-    
-    const computedTitle = computed(() => {
-        if (props.title){
-            return props.title
-        }
-        else {            
-            if (props.dataId){
-                return "Edit Data"
-            }
-            else {
-                return "Add New"
-            }
-        }
-    })
     
     const handleError = field => {
         if (errors.value){

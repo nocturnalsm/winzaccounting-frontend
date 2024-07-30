@@ -1,7 +1,7 @@
 <template>      
-    <v-row>
+    <v-row class="mt-16">
         <v-col cols="12">
-            <v-card :loading="props.loading" class="rounded-lg text-body-1">
+            <v-card :loading="props.loading" class="rounded-lg text-body-1 my-2 mx-4">
                 <slot name="table">
                     <DataTable 
                         :totalData="totalRecords"

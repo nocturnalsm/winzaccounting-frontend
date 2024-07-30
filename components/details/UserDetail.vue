@@ -8,9 +8,10 @@
         :links="links"
         :title="props.title"
         :loading="loading"
+        :breadcrumbs="breadcrumbs"
     >            
         <template #main>      
-            <div class="overflow-y-auto overflow-x-hidden h-screen pr-8">
+            <div>
                 <h6 id="user-information" class="text-h6 mb-4">User Information</h6>
                 <UserForm :loading="loading" :errors="errors" class="mb-4" :data="data" />
                 <v-row class="mb-6">
@@ -189,4 +190,34 @@
             key: 'company'
         }
     ]
+
+    const computedTitle = computed(() => {
+        if (props.title){
+            return props.title
+        }
+        else {            
+            if (props.dataId){
+                return "Edit Data"
+            }
+            else {
+                return "Add New"
+            }
+        }
+    })
+
+    const breadcrumbs = [
+        {
+            title: 'Home',
+            to: { name: 'index' }
+        },
+        {
+            title: 'Users',
+            to: { name: 'settings-users' }
+        },
+        {
+            title: computedTitle.value,
+            disabled: false                   
+        }
+    ]
+
 </script>
