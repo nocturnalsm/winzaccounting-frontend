@@ -50,6 +50,7 @@ const items = ref([
     },
     {
         title: 'Reports',
+        /*
         children: [
             {
                 title: 'Ledger',                        
@@ -61,25 +62,30 @@ const items = ref([
                 title: 'Purchase'
             }
         ]
+        */
     },
     {
         title: 'Settings',
         children: [
             {
                 title: 'Companies',
-                route: { name: 'settings-companies' }
+                route: { name: 'settings-companies' },
+                permission: 'companies.list'
             },
             {
                 title: 'Permissions',
-                route: { name: 'settings-permissions' }
+                route: { name: 'settings-permissions' },
+                permission: 'permissions.list'
             },                
             {
                 title: 'Roles',
-                route: { name: 'settings-roles' }
+                route: { name: 'settings-roles' },
+                permission: 'roles.list'
             },
             {
                 title: 'Users',
-                route: { name: 'settings-users' }
+                route: { name: 'settings-users' },
+                permission: 'users.list'
             }
         ]
     }                    

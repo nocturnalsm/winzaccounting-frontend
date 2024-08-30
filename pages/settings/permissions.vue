@@ -25,8 +25,9 @@
     import { ref } from 'vue'
 
     definePageMeta({
-        middleware: 'auth',
-        layout: 'admin'
+        middleware: ['auth', 'authorization'],
+        layout: 'admin',
+        permission: 'permissions.list'
     })
     
     const { user } = useAuth()

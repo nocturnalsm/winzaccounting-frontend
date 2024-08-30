@@ -9,8 +9,7 @@
       <v-app-bar-nav-icon class="d-md-none" @click="drawer = !drawer"></v-app-bar-nav-icon>
 
       <v-app-bar-title>{{ appTitle }}</v-app-bar-title>
-      <v-spacer></v-spacer>
-      <top-menu class="d-none d-md-inline" />
+      <top-menu class="flex-grow d-none d-md-flex" />
       <v-spacer></v-spacer>
 
       <v-btn variant="text" icon="mdi-message-reply-text"></v-btn>

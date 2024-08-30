@@ -25,28 +25,28 @@
                 <h6 id="companies" class="text-h6 mb-4">Companies</h6>
                 <v-row class="mb-6">                
                     <v-col cols="12">
-                        <v-data-table-server        
+                        <DataTable 
+                            :totalData="data.companies.length"
+                            :data="data.companies"
                             :headers="companiesFields"
-                            :items="data.companies"
-                            :items-length="data.companies.length"
-                            class="elevation-4 text-body-2"
-                            :items-per-page="10"
-                            hide-default-footer                        
-                            item-value="id"       
+                            :actionButtons="props.actionButtons"
+                            class="font-roboto text-body-1"
+                            :show-search="false"
+                            :sync-server="false"
                         />
                     </v-col>
                 </v-row>
                 <h6 id="roles" class="text-h6 mb-4">Roles</h6>
                 <v-row>                
                     <v-col cols="12">
-                        <v-data-table-server        
+                        <DataTable 
+                            :totalData="data.roles.length"
+                            :data="data.roles"
                             :headers="rolesFields"
-                            :items="data.roles"
-                            :items-length="data.roles.length"
-                            class="elevation-4 text-body-2"
-                            :items-per-page="10"
-                            hide-default-footer                        
-                            item-value="id"       
+                            :actionButtons="props.actionButtons"
+                            class="font-roboto text-body-1"
+                            :show-search="false"
+                            :sync-server="false"
                         />
                     </v-col>
                 </v-row>
@@ -71,6 +71,7 @@
     })
     
     const data = ref({
+            id: null,
             name: '',
             email: '',
             username: '',
@@ -124,8 +125,8 @@
     })
     
     watch(() => props.dataId, async value => {
-        if (props.dataId){
-            const responseData = await $fetchApi(`/admin/users/${props.dataId}`)
+        if (props.dataId){            
+            const responseData = await $fetchApi(`/admin/users/${props.dataId}`)            
             Object.keys(data.value).forEach(o => {
                 data.value[o] = responseData[o] ?? null
             })            

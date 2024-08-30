@@ -1,7 +1,7 @@
 <template>
     <v-data-table-server        
         :headers="fields"
-        :items="data"
+        :items="baseData"
         :items-length="totalData"
         :loading="loading"
         class="text-body-2"
@@ -10,7 +10,7 @@
         v-bind="$attrs"       
         :hide-default-footer="noFooter"
         :show-select="selectable"
-        @update:options="handleData"
+        @update:options="handleData"        
         item-value="id"
         v-model="selected"        
     >
@@ -34,7 +34,7 @@
                 <div class="d-flex align-center flex-grow-1">
                     <h1 class="text-h6 pl-4 pr-4 pr-sm-8">{{ title }}</h1>   
                     <div class="d-flex flex-grow-1"> 
-                        <form @submit.prevent="handleSearch" class="search d-inline-flex align-center flex-grow-1">
+                        <form v-if="showSearch" @submit.prevent="handleSearch" class="search d-inline-flex align-center flex-grow-1">
                             <v-text-field                                                              
                                 :placeholder="computedSearchPlaceholder" 
                                 variant="underlined"
@@ -128,6 +128,7 @@
     import { useDisplay } from 'vuetify'
     
     const { smAndDown } = useDisplay()
+    const baseData = ref([])
     const props = defineProps({
         headers: {
             type: [Array, Boolean],
@@ -181,6 +182,10 @@
         filters: {
             type: Object,
             default: {}
+        },
+        syncServer: {
+            type: Boolean,
+            default: true
         }
     })
     const emit = defineEmits(['addClick', 'editClick', 'deleteClick', 'getData', 'search', 'filter'])
@@ -201,7 +206,7 @@
             emit('deleteClick', editedItem.value)
         }
     }
-
+    
     const toolbarButtons = {
         addButton: {
             name: 'add',
@@ -291,14 +296,36 @@
     
     const handleData = options => { 
         const { itemsPerPage, page, sortBy } = options       
+        let sort = sortBy[0] ? sortBy[0]['key'] : null
+        let order = sortBy[0] ? sortBy[0]['order'] : 'asc'
+        let limit = itemsPerPage ?? 10
         let params = {
             page: page,
-            limit: itemsPerPage ?? 10,
-            sort: sortBy[0] ? sortBy[0]['key'] : null,
-            order: sortBy[0] ? sortBy[0]['order'] : 'asc'
+            limit: limit,
+            sort: sort,
+            order: order
         }     
         fetchOptions.value = options
-        emit('getData', params)
+        
+        if (props.syncServer){
+            emit('getData', params)
+        }
+        else {
+            baseData.value = props.data
+            if (sort){                                
+                baseData.value.sort((a, b) => {
+                    const sortedA = a[sort] || ''
+                    const sortedB = b[sort] || ''
+                    if (order == 'asc'){
+                        return sortedA.localeCompare(sortedB)
+                    }
+                    else {
+                        return sortedB.localeCompare(sortedA)
+                    }
+                })
+            }
+            baseData.value = baseData.value.slice((page - 1)*limit, (page - 1)* limit + limit - 1)
+        }
     }
     
     watch (dialogDelete, val => {
@@ -308,6 +335,11 @@
     watch(selected, value => {
         toolbarButtons.deleteSelectedButton.show = value.length
     })
+
+    watch(() => props.data, () => {
+        baseData.value = props.data
+    })
+   
     
     const handleAction = (prop, item) => {
         if (typeof prop == 'function'){
